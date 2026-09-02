@@ -1,0 +1,108 @@
+ :root{
+      --bg: #f7f8f9;
+      --card: #fff;
+      --muted: #9aa0a6;
+      --accent: #489520;
+      --radius: 12px;
+      --gap: 12px;
+      --container-pad: 12px;
+      --max-width: 920px; /* для планшетов/десктопа */
+    }
+
+    html,body{height:100%; margin:0; background:#fff; font-family:-apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; color:#111;}
+    /* Учитываем вырезы / индикатор (iPhone и др) */
+    .shell{padding: env(safe-area-inset-top) var(--container-pad) calc(env(safe-area-inset-bottom) + 84px) var(--container-pad); max-width:var(--max-width); margin:0 auto;}
+
+
+
+
+    /* Шапка */
+    .header{
+      display:flex; align-items:center; gap:12px;
+      padding:14px 4px; background:transparent;
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(6px);
+    }
+    .gray {
+  filter: grayscale(100%);
+}
+    .back{font-size:20px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:10px; cursor:pointer; color:#222;}
+    .title{font-weight:600; font-size:18px; flex:1; text-align:center; margin-right:36px;}
+.back img {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+}
+
+
+
+    /* Вкладки */
+    .tabs{
+      display:flex; 
+       
+      background:#ebebeb;
+      border-radius:999px;
+    padding:3px 3px 3px 1px;
+    }
+    .tab{
+      flex:1; text-align:center; padding:10px 8px; border-radius:999px; color:#1b1b1b; font-weight:600; cursor:pointer;
+      user-select:none; font-size:15px;
+    }
+    .tab.active{ background:var(--card); color:#489520; box-shadow:0 1px 4px rgba(0,0,0,0.06); border-bottom:10px 10px #1b1b1b; }
+
+    /* Список карточек */
+    .list{ padding:10px 0 0; display:flex; flex-direction:column; gap:14px; }
+
+    .card{
+      display:flex; align-items:center; gap:12px;
+      background:var(--card); border-radius:var(--radius); padding:14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    }
+
+    .logo{ 
+      flex:0 0 52px; height:52px; border-radius:7px; overflow:hidden; display:flex; align-items:center; justify-content:center;
+      box-shadow:0 0px 8px rgba(0,0,0,0.3); background:#fff;
+    }
+    .logo img{ width:44px; height:44px; object-fit:contain; display:block; }
+
+    .card-main{ letter-spacing: 0.4px; padding: 10px;  flex:1; min-width:0; } /* min-width чтобы текст переносился корректно */
+    .city{ font-weight:700; font-size:16px; color:#111; line-height:1; }
+    .company.active{ margin-top:2px; font-size:14px; color: #111; }
+    .company.inactive{ color: #9aa0a6; }
+    .meta{ margin-top:8px; font-size:14px; color:#333; display:flex; flex-direction:column; gap:6px; }
+    .meta .dates{ color:#666; font-size:14px; }
+    .meta .status{ font-size:14px; }
+  
+
+    .status.active{ color:#111; display:flex; align-items:center; gap:8px; }
+    .status.inactive{ color:var(--muted);}
+
+    /* Иконки справа (transport) */
+    .icons{
+      display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:flex-start;
+      flex:0 0 36px; color: #bfc6cb;
+    }
+    .icons svg{ width:22px; height:22px; opacity:0.9; }
+
+    /* Фиксированная кнопка снизу */
+    .bottom-bar{
+      position:fixed; left:0; right:0; bottom:0; z-index:40;
+      padding: calc(env(safe-area-inset-bottom) + 12px) var(--container-pad) 12px;
+      
+      
+     
+    }
+    .btn{
+      width:100%; max-width:980px; margin:0 auto; display:block;
+      background:var(--accent); color:#fff; border:none; font-weight:700;
+      font-size:16px; padding:14px; border-radius:12px; cursor:pointer;
+      box-shadow: 0 6px 14px rgba(76,175,80,0.18);
+    }
+
+    /* Responsive tweaks */
+    @media(min-width:720px){
+      .shell{ padding-left:18px; padding-right:18px; }
+      .card{ padding:16px; gap:16px; }
+      .logo{ width:64px; height:64px; }
+      .icons{ flex:0 0 44px; }
+    }

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, orientation=portrait">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+ <link id="mainStyles" rel="stylesheet" type="text/css" href="main.css">
+    <link id="popupStyles" rel="stylesheet" type="text/css" href="index.css" disabled>
+    <script id="popupScript" src="index.js" defer disabled></script>
+</head>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, orientation=portrait">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Студентський</title>
+  
+</head>
+<body>
+  <div class="shell">
+    <div class="header">
+      <div class="back" onclick="history.back()"><img src="налево.png" alt="Закрыть" class=""></div>
+      <div class="title">Архів</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab" id="tab-ticket" onclick="switchTab('ticket')">Квиток</div>
+      <div class="tab active" id="tab-pass" onclick="switchTab('pass')">Проїзний</div>
+    </div>
+
+    <div id="content-area" style="margin-top:10px;">
+      <div id="cards" class="list"></div>
+    </div>
+  </div>
+
+  <!-- нижняя фиксированная панель -->
+  <div class="bottom-bar">
+    <button class="btn" onclick="scanQR()">Відсканувати QR-код</button>
+  </div>
+
+<script>
+     document.addEventListener('DOMContentLoaded', function() {
+    // Явно устанавливаем стили при загрузке
+    const mainStyles = document.getElementById('mainStyles');
+    const popupStyles = document.getElementById('popupStyles');
+    
+    if(mainStyles) mainStyles.disabled = false;
+    if(popupStyles) popupStyles.disabled = true;
+    
+    // ... остальной код
+});
+  // Пример данных — можешь подгружать с сервера
+  const tickets = [
+    {
+      city: "Одеса",
+      company: "Одесміськелектротранс",
+      start: "2025-09-02",
+      end:   "2025-09-30",
+      logo: "./Odesa.svg",
+      icon: "metr-td.png",
+      grayscale: false // локально прикреплено (замени на URL если нужно)
+    },
+    {
+      city: "Одеса",
+      company: "Одесміськелектротранс",
+      start: "2023-09-01",
+      end:   "2023-09-07",
+      logo: "./Odesa-grey.png",
+      icon: "metr-td-off.png",
+      grayscale: true
+    },
+    {
+      city: "Дніпро",
+      company: "КП Дніпровський електротранспорт ДМР",
+      start: "2023-07-11",
+      end:   "2023-07-11",
+      logo: "./Dnipro-grey.png",
+      icon: "metr-td-off.png",
+      grayscale: true
+    }
+  ];
+
+  // Функция форматирования даты
+  function formatDateISO(iso){
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('uk-UA', {day:'2-digit', month:'2-digit', year:'numeric'});
+  }
+
+  // Рендер карточек
+  function renderCards(list){
+    const container = document.getElementById('cards');
+    container.innerHTML = '';
+    const now = new Date();
+
+    list.forEach(item => {
+      const start = new Date(item.start);
+      const end   = new Date(item.end);
+      const isActive = now >= start && now <= end;
+
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      // Структура карточки
+      card.innerHTML = `
+  <div class="logo"><img src="${item.logo}" alt="${item.city}" onerror="this.style.opacity=0.6; this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=48 height=48><rect width=48 height=48 fill=%23f0f0f0 /></svg>'"></div>
+  <div class="card-main">
+    <div class="meta">
+    <div class="dates" style="color: #9aa0a6;">${item.city}</div>
+    <div class="company ${isActive ? 'active' : 'inactive'}">${item.company}</div>
+    
+      <div class="dates"> 
+        <span style="color: #9aa0a6;">Строк дії</span><br>
+</div>
+      <div class="status ${isActive ? 'active' : 'inactive'}">${formatDateISO(item.start)} - ${formatDateISO(item.end)}</div>
+
+        
+      
+      <div class="dates">
+        <span style="color: #9aa0a6;">Дійсний</span><br>
+        
+      </div>
+      <div class="status ${isActive ? 'active' : 'inactive'}">${isActive ? ('' + now.toLocaleString('uk-UA')) : 'Ні'}</div>
+    </div>
+  </div>
+  <div class="icons">
+    <img 
+  src="${item.icon}" 
+  alt="транспорт" 
+  class="${!isActive ? 'gray' : ''}" 
+  style="width:30px; height:100px;"
+  onerror="this.classList.add('gray');">
+  </div>
+`;
+
+      container.appendChild(card);
+    });
+  }
+
+  // Инициализация
+  renderCards(tickets);
+
+  // Простые заглушки для вкладок/кнопки
+  function switchTab(tab){
+    document.getElementById('tab-ticket').classList.toggle('active', tab === 'ticket');
+    document.getElementById('tab-pass').classList.toggle('active', tab === 'pass');
+    // можно менять данные при переключении
+    //renderCards(tab === 'ticket' ? tickets.filter(...) : tickets)
+  }
+
+  function scanQR(){
+    alert('Запустить сканер QR (заглушка) — сюда подключаем нативный/браузерный сканер.');
+  }
+
+
+
+
+ 
+</script>
+
+
+<div id="popup" style="display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 1000; transition: transform 0.3s ease-in-out; transform: translateY(100%);">
+   <img src="fon.png" class="bg-img">
+   <img src="close.png" alt="Закрыть" class="close-btn" style="cursor: pointer; z-index: 1001;">
+    <div class="main-full">
+  <div class="title">Студентський (тролейбус місячний)</div>
+
+  <div class="card">
+    <div class="logo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/49/Coat_of_Arms_of_Odesa.svg" alt="Одеса герб">
+    </div>
+    <div class="meta">
+      <div>тролейбус</div>
+      <div>Одеса</div>
+      <div>Серія <b id="series"></b></div>
+    </div>
+
+    
+  <img src="./tramvay.gif" 
+     alt="Трамвай"
+  style=" 
+    margin-top: 3px; /* увеличьте значение по необходимости */
+    width: 100%;
+    margin-bottom: 3px;
+                  /* задаёшь высоту под себя */
+   
+    object-fit: cover;          /* убирает полосы */
+    object-position: center;    /* центрирование */
+    display: block;
+    background: transparent;
+    
+  ">
+  
+
+
+    <div class="line-time">
+    <div class="progress"><div class="progress-bar" id="progress"></div></div>
+    <div class="row">
+        <div class="date" id="date">--.--</div>
+      <div class="time" id="time">--:--:--</div>
+      
+    </div></div>
+    <div class="price">240.0 UAH</div>
+    <div class="sub">Строк дії</div>
+    <div class="sub" id="range">02.09.2025 - 30.09.2025</div>
+    <div class="days" id="daysLeft">До закінчення строку дії залишилося «--» днів</div>
+  </div>
+</div>
+</div>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    const mainStyles = document.getElementById('mainStyles');
+    const popupStyles = document.getElementById('popupStyles');
+    const popupScript = document.getElementById('popupScript');
+    
+    // Инициализация стилей
+    mainStyles.disabled = false;
+    popupStyles.disabled = true;
+    popupScript.disabled = true;
+
+    // Рендер карточек и остальной код...
+    renderCards(tickets);
+    
+    // Открытие popup
+    document.getElementById('cards').addEventListener('click', function() {
+        const popup = document.getElementById('popup');
+        popup.style.display = 'block';
+        
+        setTimeout(() => {
+            mainStyles.disabled = true;
+            popupStyles.disabled = false;
+            // Включаем скрипт popup
+            popupScript.disabled = false;
+            // Вызываем инициализацию из index.js
+            if(window.initPopup) window.initPopup();
+        }, 300);
+        
+        setTimeout(() => {
+            popup.style.transform = 'translateY(0)';
+        }, 10);
+    });
+
+    // Закрытие popup
+   // Обработчик для закрытия popup
+document.querySelector('.close-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    const popup = document.getElementById('popup');
+    
+    // Сразу включаем main стили
+    mainStyles.disabled = false;
+    
+    popup.style.transform = 'translateY(100%)';
+    
+    // Отключаем index стили и скрипт с задержкой
+    setTimeout(() => {
+        popupStyles.disabled = true;
+        popupScript.disabled = true;
+    }, 30);
+    
+    setTimeout(() => {
+        popup.style.display = 'none';
+    }, 600);
+});
+});
+</script>
+
+</body>
+</html>
+
+

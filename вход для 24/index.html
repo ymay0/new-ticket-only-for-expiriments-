@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Вход в систему</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      position: relative;
+    }
+
+    #video-background {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      z-index: -1;
+      object-fit: cover;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .circle img {
+      width: 120px;
+      height: 120px;
+    }
+
+    h2 {
+      margin: 20px 0;
+      color: #ffffff;
+      font-size: 1.5rem;
+      font-weight: 800;
+      text-shadow: 
+          2px 2px 2px rgba(0, 0, 0, 0.3),
+          0 0 10px rgba(5, 150, 105, 0.5),
+          -1px -1px 0 #065f46,
+          1px -1px 0 #065f46,
+          -1px 1px 0 #065f46,
+          1px 1px 0 #065f46;
+    }
+
+    .login-box {
+      background-color: white;
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 
+          0 10px 25px rgba(0, 0, 0, 0.1),
+          0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .login-box input[type="text"] {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border: 2px solid #a7f3d0;
+      border-radius: 12px;
+      outline: none;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .login-box input[type="text"]:focus {
+      border-color: #059669;
+      box-shadow: 
+          0 4px 6px rgba(5, 150, 105, 0.1),
+          0 0 0 3px rgba(5, 150, 105, 0.2);
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      background-color: #059669;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: all 0.2s ease;
+      box-shadow: 
+          0 4px 6px rgba(5, 150, 105, 0.2),
+          0 1px 3px rgba(5, 150, 105, 0.1);
+    }
+
+    .login-box button:hover {
+      background-color: #047857;
+      transform: translateY(-2px);
+      box-shadow: 
+          0 6px 8px rgba(5, 150, 105, 0.3),
+          0 2px 4px rgba(5, 150, 105, 0.2);
+    }
+
+    .login-box button:active {
+      transform: scale(0.98);
+    }
+
+    .info-box {
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 30px;
+      font-size: 14px;
+      color: #047857;
+      text-align: center;
+      max-width: 600px;
+      line-height: 1.5;
+      box-shadow: 
+          0 4px 6px rgba(0, 0, 0, 0.1),
+          0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .info-box p {
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    }
+
+    footer {
+      margin-top: 40px;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 14px;
+      text-shadow: 
+          1px 1px 2px rgba(0, 0, 0, 0.3),
+          0 0 10px rgba(5, 150, 105, 0.5);
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .circle img {
+        width: 120px;
+        height: 120px;
+      }
+
+      .login-box {
+        padding: 18px;
+      }
+
+      .login-box input[type="text"], 
+      .login-box button {
+        font-size: 15px;
+        padding: 12px;
+      }
+
+      .info-box {
+        font-size: 13px;
+        padding: 14px;
+      }
+    }
+
+    /* Стили для ссылок */
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    a:hover, a:visited, a:active, a:focus {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* Анимация для телеграм ссылки */
+.circle {
+      display: inline-block;
+      animation: pulseAnimation 2s ease-in-out infinite;
+    }
+
+    .tg-link {
+      display: inline-block;
+      animation: pulseAnimation 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseAnimation {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <video id="video-background" autoplay muted loop playsinline>
+    <source src="bec.mp4" type="video/mp4">
+  </video>
+
+  <div class="circle"> 
+    <img src="logo.png" alt="logo">
+  </div>
+
+  <h2>Вход в систему</h2>
+
+  <div class="login-box">
+    <input type="text" placeholder="Введите код доступа" maxlength="19" id="accessCode" />
+    <button>Вход</button>
+  </div>
+
+  <script>
+    const input = document.getElementById('accessCode');
+    
+    // При фокусе показываем формат
+    input.addEventListener('focus', function(e) {
+      if (!e.target.value) {
+        e.target.placeholder = 'XXXX-XXXX-00.00.2000';
+      }
+    });
+
+    // При потере фокуса возвращаем обычный placeholder
+    input.addEventListener('blur', function(e) {
+      if (!e.target.value) {
+        e.target.placeholder = 'Введите код доступа';
+      }
+    });
+  </script>
+
+  <div class="info-box">
+   
+    <p>Не передавайте код третьим лицам</p>
+    <p>при нарушении код станет недействителен!</p>
+     <p>Код доступа предоставляется при покупке.</p>
+    <p>Блокировка доступа после 3 неверных попыток.</p>
+    <p>Операции защищены методами шифрования.</p>
+  </div>
+
+  <footer><a href="https:/t.me/FAKE_Proezd">© FAKE ПРОЕЗДНОЙ <br><span class="tg-link">t.me/FAKE_Proezd</span></a>
+  </footer>
+
+</body>
+</html>
