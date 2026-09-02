@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, orientation=portrait">
+  <title>Студентський</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+
+<style>
+  /* ==========================================================================
+     1. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И БАЗОВЫЕ СТИЛИ
+     ========================================================================== */
+  :root {
+    --bg: #f7f8f9;
+    --card: #fff;
+    --muted: #9aa0a6;
+    --accent: #489520;
+    --radius: 12px;
+    --container-pad: 20px;
+    --max-width: 920px;
+  }
+
+  html, body {
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+    background: #fff; 
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+    color: #111;
+  }
+
+  /* Основной контейнер страницы */
+  .shell {
+    padding: env(safe-area-inset-top) var(--container-pad) calc(env(safe-area-inset-bottom) + 84px) var(--container-pad); 
+    max-width: var(--max-width); 
+    margin: 0 auto;
+  }
+
+  /* Размытие фона при открытии модального окна */
+  .shell.blurred,
+  .bottom-bar.blurred {
+    filter: blur(0px);
+    transition: filter 0.3s ease;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ==========================================================================
+     2. ВЕРХНЯЯ ПАНЕЛЬ И Переключатель ВКЛАДОК
+     ========================================================================== */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  .header .title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1c1c1e;
+    margin: 0;
+  }
+
+  .back {
+    width: 36px; 
+    height: 36px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    border-radius: 10px; 
+    cursor: pointer; 
+  }
+      
+  .back img {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+  }
+
+  /* Табы "Квиток / Проїзний" */
+  .tabs {
+    display: flex; 
+    background: #ebebeb;
+    border-radius: 999px;
+    padding: 3px 3px 3px 1px;
+  }
+
+  .tab {
+    flex: 1; 
+    text-align: center; 
+    padding: 10px 8px; 
+    border-radius: 999px; 
+    color: #1b1b1b; 
+    font-weight: 600; 
+    cursor: pointer;
+    user-select: none; 
+    font-size: 15px;
+  }
+
+  .tab.active { 
+    background: var(--card); 
+    color: var(--accent); 
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06); 
+  }
+
+  /* ==========================================================================
+     3. СПИСОК КАРТОЧЕК БИЛЕТОВ (ОСНОВНОЙ ЭКРАН)
+     ========================================================================== */
+  .list { 
+    padding: 10px 0 0; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 14px; 
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 22px 45px 22px 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+    margin-bottom: 14px;
+    font-family: 'Inter', sans-serif; 
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .logo { 
+    flex: 0 0 52px; 
+    height: 52px; 
+    border-radius: 7px; 
+    overflow: hidden; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+  }
+
+  .logo img { 
+    width: 44px; 
+    height: 44px; 
+    object-fit: contain; 
+  }
+
+  .card-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .card .city-title {
+    font-size: 13px;
+    color: #9aa0a6;
+  }
+
+  .company {
+    font-size: 14px;
+    font-weight: 300;
+    color: #111;
+    margin-bottom: 4px;
+  }
+
+  .info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .info-label {
+    font-size: 12px;
+    color: #9aa0a6;
+  }
+
+  .info-value {
+    font-size: 13px;
+    font-weight: 300;
+    color: #111;
+    display: flex;
+    align-items: center;
+  }
+
+  .icons {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 26px;
+  }
+
+  .gray {
+    filter: grayscale(100%);
+  }
+
+  /* ==========================================================================
+     4. НИЖНЯЯ ПАНЕЛЬ С КНОПКОЙ СКАНЕРА
+     ========================================================================== */
+  .bottom-bar {
+    position: fixed; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    z-index: 40;
+    padding: calc(env(safe-area-inset-bottom) + 12px) var(--container-pad) 12px;
+  }
+
+  .btn {
+    width: 100%; 
+    max-width: 980px; 
+    margin: 0 auto; 
+    display: block;
+    background: var(--accent); 
+    color: #fff; 
+    border: none; 
+    font-weight: 700;
+    font-size: 16px; 
+    padding: 14px; 
+    border-radius: 12px; 
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(76,175,80,0.18);
+  }
+
+  /* ==========================================================================
+     5. МОДАЛЬНОЕ ОКНО (POPUP) КАРТОЧКИ БИЛЕТА
+     ========================================================================== */
+  .ticket-popup {
+    display: none; 
+    position: fixed; 
+    top: 0;
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0, 0, 0, 0.87);
+    z-index: 1000; 
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .ticket-popup.active {
+    opacity: 1;
+  }
+
+  .ticket-main-full {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .ticket-popup.active .ticket-main-full {
+    transform: translateY(0);
+  }
+
+  .ticket-card {
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    width: 100%;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    padding-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .ticket-header-bg {
+    background: #f4f3f3;
+    width: 100%;
+    padding: 45px 16px 20px 16px;
+    box-sizing: border-box;
+  }
+
+  .ticket-title-inner {
+    font-size: 18px;
+    font-weight: 300;
+    color: #111;
+  }
+
+  .ticket-logo {
+    width: 120px;
+    height: 120px;
+    background: #fff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 14px auto 8px auto;
+    border: 1px solid #e0e0e0; 
+  }
+
+  .ticket-logo img {
+    width: 105px;
+    height: 105px;
+    object-fit: contain;
+  }
+
+  .ticket-meta {
+    text-align: center;
+    width: 100%;
+  }
+
+  .ticket-meta div {
+    font-size: 15px;
+    line-height: 1.3;
+    margin: 2px 0;
+    color: #111;
+  }
+
+  /* Стили для Таймера и Прогресс-бара активного билета */
+  .line-time {
+    background: #f4f3f3;
+    width: 100%;
+    padding-bottom: 2px;
+  }
+
+  .progress {
+    height: 5px;
+    background: #e0e0e0;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    transition: width 0.5s linear;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    margin: 12px 0 10px 0;
+  }
+
+  .time {
+    font-size: 20px;
+    font-weight: 500;
+    color: #4da723;
+  }
+
+  .date {
+    font-size: 20px;
+    font-weight: 500;
+    color: #000;
+  }
+
+  /* Стили для недействительного (просроченного) билета */
+  .invalid-banner {
+    background-color: #f4f3f3;
+    width: 100%;
+    padding: 14px 0;
+    margin: 10px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .status-invalid {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ea4335;
+    margin: 0 0 4px 0;
+  }
+
+  .sub-invalid {
+    font-size: 13px;
+    color: #f28b82;
+    margin: 0;
+  }
+
+  .buy-btn-popup {
+    width: calc(100% - 32px);
+    margin: 15px 16px 0 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 13px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  /* Общие элементы информации карточки */
+  .price {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 14px 0 10px 0;
+  }
+
+  .sub {
+    text-align: center;
+    font-size: 14px;
+    color: #696969;
+    margin: 0 0 2px 0;
+  }
+
+  #range {
+    font-size: 17px;
+    color: #171717;
+  }
+
+  .days {
+    text-align: center;
+    font-size: 13px;
+    color: #555;
+    margin-top: 4px;
+    width: 100%;
+    padding: 0 12px;
+    box-sizing: border-box;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+</style>
+
+<body>
+  <div class="shell">
+    <div class="header">
+      <div class="back" onclick="history.back()"><img src="налево.png" alt="Назад"></div>
+      <div class="title">Архів</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab" id="tab-ticket" onclick="switchTab('ticket')">Квиток</div>
+      <div class="tab active" id="tab-pass" onclick="switchTab('pass')">Проїзний</div>
+    </div>
+
+    <div id="content-area" style="margin-top:10px;">
+      <div id="cards" class="list"></div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn" onclick="scanQR()">Відсканувати QR-код</button>
+  </div>
+
+  <div id="popup" class="ticket-popup" onclick="closePopup()">
+    <div class="ticket-main-full">
+      <div class="ticket-card" onclick="event.stopPropagation()">
+        
+        <div class="ticket-header-bg">
+          <div class="close-btn" onclick="closePopup()">✕</div>
+          <div class="ticket-title-inner">Студентський (тролейбус місячний)</div>
+        </div>
+
+        <div class="ticket-logo">
+          <img id="popup-logo" src="./Odesa.svg" alt="Герб міста">
+        </div>
+
+        <div class="ticket-meta">
+          <div>тролейбус</div>
+          <div id="popup-city">Одеса</div>
+          <div>Серія <b id="series"></b></div>
+        </div>
+
+        <div id="dynamic-ticket-content" style="width: 100%;"></div>
+
+        <div class="price">240.0 UAH</div>
+        <div class="sub">Строк дії</div>
+        <div class="sub" id="range">--.--.---- - --.--.----</div>
+        <div class="days" id="daysLeft">До закінчення строку дії залишилося «--» днів</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  /* ==========================================================================
+     1. ГЕНЕРАЦИЯ ДАННЫХ ДЛЯ ТЕСТОВЫХ БИЛЕТОВ
+     ========================================================================== */
+  function getDynamicTickets() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const currentDay = now.getDate();
+
+      // Активный билет: старт в текущем месяце, конец — последний день месяца
+      const randomStartDay = Math.floor(Math.random() * currentDay) + 1;
+      const formattedMonth = String(month + 1).padStart(2, '0');
+      const startStr = `${year}-${formattedMonth}-${String(randomStartDay).padStart(2, '0')}`;
+
+      const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+      const endStr = `${year}-${formattedMonth}-${String(totalDaysInMonth).padStart(2, '0')}`;
+
+      // Функция для генерации дат прошедших (неактивных) билетов
+      function getRandomPastDates() {
+          const pastYear = Math.floor(Math.random() * (year - 2021)) + 2021;
+          const pastMonthNum = Math.floor(Math.random() * 12) + 1;
+          const pastMonthStr = String(pastMonthNum).padStart(2, '0');
+          const daysInPastMonth = new Date(pastYear, pastMonthNum, 0).getDate();
+          
+          const startDay = Math.floor(Math.random() * (daysInPastMonth - 5)) + 1;
+          const endDay = Math.min(startDay + Math.floor(Math.random() * 10) + 1, daysInPastMonth);
+
+          return { 
+            start: `${pastYear}-${pastMonthStr}-${String(startDay).padStart(2, '0')}`, 
+            end: `${pastYear}-${pastMonthStr}-${String(endDay).padStart(2, '0')}` 
+          };
+      }
+
+      function generateSeriesNumber() {
+          return Math.floor(10000000 + Math.random() * 90000000);
+      }
+
+      const past1 = getRandomPastDates();
+      const past2 = getRandomPastDates();
+
+      return [
+          {
+              city: "Одеса",
+              company: "Одесміськелектротранс",
+              start: startStr,
+              end: endStr,
+              logo: "./Odesa.svg",
+              icon: "metr-td.png",
+              series: generateSeriesNumber()
+          },
+          {
+              city: "Одеса",
+              company: "Одесміськелектротранс",
+              start: past1.start,
+              end: past1.end,
+              logo: "./Odesa.svg",
+              icon: "metr-td.png",
+              series: generateSeriesNumber()
+          },
+          {
+              city: "Дніпро",
+              company: "КП Дніпровський електротранспорт ДМР",
+              start: past2.start,
+              end: past2.end,
+              logo: "./Dnipro.svg",
+              icon: "metr-td.png",
+              series: generateSeriesNumber()
+          }
+      ];
+  }
+
+  // Форматирование даты из YYYY-MM-DD в DD.MM.YYYY
+  function formatDateISO(iso) {
+      if (!iso || !iso.includes('-')) return iso;
+      const parts = iso.split('-');
+      return `${parts[2]}.${parts[1]}.${parts[0]}`;
+  }
+
+  /* ==========================================================================
+     2. ОТРЕСОВКА СПИСКА БИЛЕТОВ В ИНТЕРФЕЙСЕ
+     ========================================================================== */
+  function renderCards(list) {
+      const container = document.getElementById('cards');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      const now = new Date();
+
+      const checkmarkSvg = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="margin-left: 4px; display: inline-block; vertical-align: middle;">
+          <path d="M13.5 4.5L6.5 11.5L3 8" stroke="#489520" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+
+      list.forEach(item => {
+          const start = new Date(item.start);
+          const end   = new Date(item.end);
+
+          start.setHours(0, 0, 0, 0);
+          end.setHours(23, 59, 59, 999);
+
+          const isActive = now >= start && now <= end;
+
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.onclick = () => openPopup(item);
+
+          card.innerHTML = `
+              <div class="logo">
+                  <img src="${item.logo}" alt="${item.city}">
+              </div>
+              <div class="card-main">
+                  <div class="city-title">${item.city}</div>
+                  <div class="company">${item.company}</div>
+                  
+                  <div class="info-row">
+                      <div class="info-label">Строк дії</div>
+                      <div class="info-value">${formatDateISO(item.start)} - ${formatDateISO(item.end)}</div>
+                  </div>
+
+                  <div class="info-row">
+                      <div class="info-label">Дійсний</div>
+                      <div class="info-value">
+                          ${isActive ? (now.toLocaleDateString('uk-UA') + ' ' + now.toLocaleTimeString('uk-UA') + checkmarkSvg) : 'Ні'}
+                      </div>
+                  </div>
+              </div>
+              <div class="icons">
+                  <img src="${item.icon}" alt="транспорт" class="${!isActive ? 'gray' : ''}" style="width:26px; height:auto;">
+              </div>
+          `;
+
+          container.appendChild(card);
+      });
+  }
+
+  /* ==========================================================================
+     3. УПРАВЛЕНИЕ МОДАЛЬНЫМ ОКНОМ И ОБНОВЛЕНИЕ ДАННЫХ
+     ========================================================================== */
+  let popupTimerInterval = null;
+
+  function openPopup(ticket) {
+      const popup = document.getElementById('popup');
+      if (!popup) return;
+
+      // Обновляем базовые текстовые данные
+      document.getElementById('series').textContent = ticket.series;
+      document.getElementById('popup-city').textContent = ticket.city;
+      document.getElementById('popup-logo').src = ticket.logo;
+
+      // Показываем подложку
+      popup.style.display = 'block';
+
+      // Плавное открытие (анимация подъема снизу)
+      requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+              popup.classList.add('active');
+          });
+      });
+
+      // Инициализируем содержимое и запускаем ежесекундное обновление таймера
+      updatePopupData(ticket);
+      if (popupTimerInterval) clearInterval(popupTimerInterval);
+      popupTimerInterval = setInterval(() => updatePopupData(ticket), 1000);
+  }
+
+  function updatePopupData(ticket) {
+    const now = new Date();
+
+    const ticketStart = new Date(ticket.start);
+    const ticketEnd = new Date(ticket.end);
+    ticketStart.setHours(0, 0, 0, 0);
+    ticketEnd.setHours(23, 59, 59, 999);
+
+    const isActive = now >= ticketStart && now <= ticketEnd;
+    const dynamicContent = document.getElementById('dynamic-ticket-content');
+
+    // Форматирование периода действия
+    const startDay = String(ticketStart.getDate()).padStart(2, '0');
+    const startMonth = String(ticketStart.getMonth() + 1).padStart(2, '0');
+    const startYear = ticketStart.getFullYear();
+
+    const endDay = String(ticketEnd.getDate()).padStart(2, '0');
+    const endMonth = String(ticketEnd.getMonth() + 1).padStart(2, '0');
+    const endYear = ticketEnd.getFullYear();
+
+    document.getElementById('range').textContent = `${startDay}.${startMonth}.${startYear} - ${endDay}.${endMonth}.${endYear}`;
+
+    if (!isActive) {
+        // --- ДИСПОЗИЦИЯ ДЛЯ НЕАКТИВНОГО БИЛЕТА ---
+        if (dynamicContent) {
+            dynamicContent.innerHTML = `
+                <div class="invalid-banner">
+                    <div class="status-invalid">Недійсний</div>
+                    <div class="sub-invalid">Закінчився термін дії</div>
+                </div>
+            `;
+        }
+
+        // Скрываем счетчик дней
+        const daysLeftElem = document.getElementById('daysLeft');
+        if (daysLeftElem) daysLeftElem.style.display = 'none';
+
+        // Показываем/создаем кнопку "Купити"
+        let buyBtn = document.getElementById('popup-buy-btn');
+        if (!buyBtn) {
+            buyBtn = document.createElement('button');
+            buyBtn.id = 'popup-buy-btn';
+            buyBtn.className = 'buy-btn-popup';
+            buyBtn.textContent = 'Купити';
+            buyBtn.onclick = () => alert('Перехід до купівлі квитка');
+            document.querySelector('.ticket-card').appendChild(buyBtn);
+        } else {
+            buyBtn.style.display = 'block';
+        }
+
+    } else {
+        // --- ДИСПОЗИЦИЯ ДЛЯ АКТИВНОГО БИЛЕТА ---
+        const currentDayStr = String(now.getDate()).padStart(2, '0');
+        const currentMonthStr = String(now.getMonth() + 1).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        if (dynamicContent) {
+            // Проверяем, созданы ли уже элементы. Если нет — создаем структуру 1 раз
+            let timeElem = document.getElementById('time');
+            
+            if (!timeElem) {
+                // ВЫБОР СЛУЧАЙНОЙ ГИФКИ (tramvay.gif или tramvay2.gif)
+                const gifSrc = Math.random() < 0.5 ? './tramvay.gif' : './tramvay2.gif';
+
+                dynamicContent.innerHTML = `
+                    <img src="${gifSrc}" 
+                         alt="Трамвай"
+                         style="margin-top: 6px; width: 100%; height: 28px; margin-bottom: 6px; object-fit: cover; object-position: center; display: block; background: transparent;">
+
+                    <div class="line-time">
+                      <div class="progress">
+                        <div class="progress-bar" id="progress"></div>
+                      </div>
+                      <div class="row">
+                        <div class="date" id="date">${currentDayStr}.${currentMonthStr}</div>
+                        <div class="time" id="time">${hours}:${minutes}:${seconds}</div>
+                      </div>
+                    </div>
+                `;
+            } else {
+                // Если структура уже есть — просто меняем текст времени без перезаписи <img>
+                document.getElementById('date').textContent = `${currentDayStr}.${currentMonthStr}`;
+                timeElem.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+        }
+
+        // Вычисление оставшегося срока действия в днях
+        const totalDaysInMonth = new Date(startYear, ticketStart.getMonth() + 1, 0).getDate();
+        const currentDay = now.getDate();
+        const daysLeft = Math.max(0, totalDaysInMonth - currentDay);
+
+        const daysLeftElem = document.getElementById('daysLeft');
+        if (daysLeftElem) {
+            daysLeftElem.style.display = 'block';
+            daysLeftElem.textContent = `До закінчення строку дії залишилося «${daysLeft}» днів`;
+        }
+
+        // Прогресс бар
+        const progressElem = document.getElementById('progress');
+        if (progressElem) {
+            const progressPercent = Math.min(100, (currentDay / totalDaysInMonth) * 100);
+            progressElem.style.width = `${progressPercent}%`;
+            progressElem.style.backgroundColor = '#4da723';
+        }
+
+        // Прячем кнопку покупки, если билет активен
+        const buyBtn = document.getElementById('popup-buy-btn');
+        if (buyBtn) buyBtn.style.display = 'none';
+    }
+}
+
+  function closePopup() {
+      const popup = document.getElementById('popup');
+      if (!popup) return;
+
+      if (popupTimerInterval) clearInterval(popupTimerInterval);
+
+      popup.classList.remove('active');
+      setTimeout(() => {
+          popup.style.display = 'none';
+      }, 350);
+  }
+
+  /* ==========================================================================
+     4. ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+     ========================================================================== */
+  const tickets = getDynamicTickets();
+
+  document.addEventListener('DOMContentLoaded', () => {
+      renderCards(tickets);
+  });
+
+  function switchTab(tab) {
+      document.getElementById('tab-ticket').classList.toggle('active', tab === 'ticket');
+      document.getElementById('tab-pass').classList.toggle('active', tab === 'pass');
+  }
+
+  function scanQR() {
+      alert('Запустити сканер QR');
+  }
+</script>
+</body>
+</html>

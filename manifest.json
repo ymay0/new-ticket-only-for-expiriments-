@@ -1,0 +1,17 @@
+{
+  "name": "Студентський",
+  "short_name": "Студентський",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#000",
+  "theme_color": "#000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "unnamed.png",
+      "sizes": "192x192",
+      "type": "image/png"
+     
+    }
+  ]
+}
