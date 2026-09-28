@@ -621,18 +621,34 @@
     margin: 0;
   }
 
-  .buy-btn-popup {
-    width: calc(100% - 32px);
-    margin: 15px 16px 0 16px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    font-weight: 600;
-    font-size: 16px;
-    padding: 13px;
-    border-radius: 12px;
-    cursor: pointer;
-  }
+/* Дополнительные стили, когда включается желтая плашка (<= 14 дней) */
+.validity-warning-box {
+  background-color: #fef4e8;
+  border-top: 1px solid #fce3ca;
+  border-bottom: 1px solid #fce3ca;
+  margin-left: -16px;
+  margin-right: -16px; 
+  width: calc(100% + 32px) !important;
+  padding: 12px 16px;
+  margin-bottom: 0px;
+}
+
+/* Зеленая кнопка "Купити" */
+.buy-btn-popup {
+  display: block;
+  width: 95%;
+  padding: 14px 0px;
+  background-color: #0d8544;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: center;
+  box-sizing: border-box;
+  margin-top: 20px;
+}
 
   .price {
     text-align: center;
@@ -652,6 +668,14 @@
     font-size: 17px;
     color: #171717;
   }
+
+  /* Базовые стили для контейнера "Строк дії" (всегда по центру) */
+#validity-info-container {
+  width: 100%;
+  text-align: center;
+  margin-top: 0px;
+  box-sizing: border-box;
+}
 
   .days {
     text-align: center;
@@ -1122,6 +1146,13 @@
 
         <div class="calendar-footer">
           <div class="selected-date-preview" id="calendar-preview-date">02.09.2026</div>
+
+          <!-- Секретный режим отладки -->
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; margin-bottom: 8px; cursor: pointer;">
+            <input type="checkbox" id="debug-date-toggle" style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer;">
+            Використовувати для проїзного (Debug)
+          </label>
+
           <button class="btn-done" onclick="applyCalendarDate()">Готово</button>
         </div>
 
@@ -1191,9 +1222,11 @@
         <div id="dynamic-ticket-content" style="width: 100%;"></div>
 
         <div class="price">240.0 UAH</div>
-        <div class="sub">Строк дії</div>
-        <div class="sub" id="range">--.--.---- - --.--.----</div>
-        <div class="days" id="daysLeft">До закінчення строку дії залишилося «--» днів</div>
+        <div id="validity-info-container">
+      <div class="validity-title" style="font-size: 13px; color: #8e8e93; margin-bottom: 2px;">Строк дії</div>
+      <div class="validity-range" id="range" style="font-size: 15px; font-weight: 500; color: #000;"></div>
+      <div class="validity-days-left" id="daysLeft" style="font-size: 13px; color: #8e8e93; margin-top: 4px;"></div>
+    </div>
       </div>
     </div>
   </div>
@@ -1310,6 +1343,9 @@
     document.getElementById('calendar-preview-date').textContent = `${dayStr}.${monthStr}.${yearStr}`;
   }
 
+ // Переменная для хранения эмулируемой даты (null = реальное время)
+  let debugSimulatedDate = null;
+
   function applyCalendarDate() {
     const dayStr = String(selectedDate.getDate()).padStart(2, '0');
     const monthStr = String(selectedDate.getMonth() + 1).padStart(2, '0');
@@ -1318,22 +1354,46 @@
     const formattedDate = `${dayStr}.${monthStr}.${yearStr}`;
     document.getElementById('train-date').textContent = formattedDate;
 
+    // Проверяем, включен ли режим отладки
+    const isDebugEnabled = document.getElementById('debug-date-toggle').checked;
+    if (isDebugEnabled) {
+        // Создаем копию выбранной даты и сохраняем
+        debugSimulatedDate = new Date(selectedDate);
+    } else {
+        debugSimulatedDate = null;
+    }
+
     closeCalendar();
+  }
+
+  // Вспомогательная функция получения "текущего" времени (реального или эмулируемого)
+  function getCurrentAppDate() {
+      if (debugSimulatedDate) {
+          const simulated = new Date(debugSimulatedDate);
+          const realNow = new Date();
+          // Сохраняем текущие часы, минуты и секунды для анимации таймера
+          simulated.setHours(realNow.getHours(), realNow.getMinutes(), realNow.getSeconds());
+          return simulated;
+      }
+      return new Date();
   }
 
   /* ==========================================================================
      ОСТАЛЬНОЙ ФУНКЦИОНАЛ ПРИЛОЖЕНИЯ
      ========================================================================== */
   function getDynamicTickets() {
-      const now = new Date();
+      const now = getCurrentAppDate();
       const year = now.getFullYear();
       const month = now.getMonth();
-      const currentDay = now.getDate();
 
-      const randomStartDay = Math.floor(Math.random() * currentDay) + 1;
+      // Генерируем случайный день начала от 1 до 14
+      const randomStartDay = Math.floor(Math.random() * 14) + 1;
+      const formattedStartDay = String(randomStartDay).padStart(2, '0');
       const formattedMonth = String(month + 1).padStart(2, '0');
-      const startStr = `${year}-${formattedMonth}-${String(randomStartDay).padStart(2, '0')}`;
+      
+      const startStr = `${year}-${formattedMonth}-${formattedStartDay}`;
 
+      // Конец действия проездного — последний день этого же месяца
       const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
       const endStr = `${year}-${formattedMonth}-${String(totalDaysInMonth).padStart(2, '0')}`;
 
@@ -1472,28 +1532,42 @@
       popupTimerInterval = setInterval(() => updatePopupData(ticket), 1000);
   }
 
-  function updatePopupData(ticket) {
-    const now = new Date();
+function updatePopupData(ticket) {
+    const now = getCurrentAppDate();
 
-    const ticketStart = new Date(ticket.start);
-    const ticketEnd = new Date(ticket.end);
-    ticketStart.setHours(0, 0, 0, 0);
-    ticketEnd.setHours(23, 59, 59, 999);
+    const [sYear, sMonth, sDay] = ticket.start.split('-').map(Number);
+    const [eYear, eMonth, eDay] = ticket.end.split('-').map(Number);
+
+    const ticketStart = new Date(sYear, sMonth - 1, sDay, 0, 0, 0, 0);
+    const ticketEnd = new Date(eYear, eMonth - 1, eDay, 23, 59, 59, 999);
 
     const isActive = now >= ticketStart && now <= ticketEnd;
     const dynamicContent = document.getElementById('dynamic-ticket-content');
 
-    const startDay = String(ticketStart.getDate()).padStart(2, '0');
-    const startMonth = String(ticketStart.getMonth() + 1).padStart(2, '0');
-    const startYear = ticketStart.getFullYear();
+    const startDayStr = String(sDay).padStart(2, '0');
+    const startMonthStr = String(sMonth).padStart(2, '0');
+    const endDayStr = String(eDay).padStart(2, '0');
+    const endMonthStr = String(eMonth).padStart(2, '0');
 
-    const endDay = String(ticketEnd.getDate()).padStart(2, '0');
-    const endMonth = String(ticketEnd.getMonth() + 1).padStart(2, '0');
-    const endYear = ticketEnd.getFullYear();
+    document.getElementById('range').textContent = `${startDayStr}.${startMonthStr}.${sYear} - ${endDayStr}.${endMonthStr}.${eYear}`;
 
-    document.getElementById('range').textContent = `${startDay}.${startMonth}.${startYear} - ${endDay}.${endMonth}.${endYear}`;
+    const validityContainer = document.getElementById('validity-info-container');
+    let buyBtn = document.getElementById('popup-buy-btn');
+
+    // Если кнопки нет в DOM, создаем её автоматически
+    if (!buyBtn) {
+        buyBtn = document.createElement('button');
+        buyBtn.id = 'popup-buy-btn';
+        buyBtn.className = 'buy-btn-popup';
+        buyBtn.textContent = 'Купити';
+        buyBtn.onclick = () => alert('Перехід до купівлі квитка');
+        
+        const cardElem = document.querySelector('.ticket-card');
+        if (cardElem) cardElem.appendChild(buyBtn);
+    }
 
     if (!isActive) {
+        // --- НЕДЕЙСТВИТЕЛЬНЫЙ БИЛЕТ ---
         if (dynamicContent) {
             dynamicContent.innerHTML = `
                 <div class="invalid-banner">
@@ -1506,19 +1580,11 @@
         const daysLeftElem = document.getElementById('daysLeft');
         if (daysLeftElem) daysLeftElem.style.display = 'none';
 
-        let buyBtn = document.getElementById('popup-buy-btn');
-        if (!buyBtn) {
-            buyBtn = document.createElement('button');
-            buyBtn.id = 'popup-buy-btn';
-            buyBtn.className = 'buy-btn-popup';
-            buyBtn.textContent = 'Купити';
-            buyBtn.onclick = () => alert('Перехід до купівлі квитка');
-            document.querySelector('.ticket-card').appendChild(buyBtn);
-        } else {
-            buyBtn.style.display = 'block';
-        }
+        if (validityContainer) validityContainer.classList.remove('validity-warning-box');
+        if (buyBtn) buyBtn.style.display = 'block';
 
     } else {
+        // --- ДЕЙСТВИТЕЛЬНЫЙ БИЛЕТ ---
         const currentDayStr = String(now.getDate()).padStart(2, '0');
         const currentMonthStr = String(now.getMonth() + 1).padStart(2, '0');
         const hours = String(now.getHours()).padStart(2, '0');
@@ -1552,9 +1618,14 @@
             }
         }
 
-        const totalDaysInMonth = new Date(startYear, ticketStart.getMonth() + 1, 0).getDate();
-        const currentDay = now.getDate();
-        const daysLeft = Math.max(0, totalDaysInMonth - currentDay);
+        // Вычисляем процент выполнения срока
+        const totalDurationMs = ticketEnd - ticketStart;
+        const elapsedMs = now - ticketStart;
+        const progressPercent = Math.min(100, Math.max(0, (elapsedMs / totalDurationMs) * 100));
+
+        // Вычисляем оставшиеся дни
+        const msPerDay = 1000 * 60 * 60 * 24;
+        const daysLeft = Math.max(0, Math.ceil((ticketEnd - now) / msPerDay));
 
         const daysLeftElem = document.getElementById('daysLeft');
         if (daysLeftElem) {
@@ -1562,17 +1633,31 @@
             daysLeftElem.textContent = `До закінчення строку дії залишилося «${daysLeft}» днів`;
         }
 
+        // Управление цветом полоски прогресса
         const progressElem = document.getElementById('progress');
         if (progressElem) {
-            const progressPercent = Math.min(100, (currentDay / totalDaysInMonth) * 100);
             progressElem.style.width = `${progressPercent}%`;
-            progressElem.style.backgroundColor = '#4da723';
+            if (progressPercent >= 80) {
+                progressElem.style.backgroundColor = '#ea4335';
+            } else if (progressPercent >= 50) {
+                progressElem.style.backgroundColor = '#fbbc05';
+            } else {
+                progressElem.style.backgroundColor = '#4da723';
+            }
         }
 
-        const buyBtn = document.getElementById('popup-buy-btn');
-        if (buyBtn) buyBtn.style.display = 'none';
+        // УСЛОВИЕ: Осталось 14 или менее дней
+        if (daysLeft <= 14) {
+            // Добавляем класс жёлтой плашки
+            if (validityContainer) validityContainer.classList.add('validity-warning-box');
+            if (buyBtn) buyBtn.style.display = 'block';
+        } else {
+            // Убираем только класс плашки (центрирование из #validity-info-container остается)
+            if (validityContainer) validityContainer.classList.remove('validity-warning-box');
+            if (buyBtn) buyBtn.style.display = 'none';
+        }
     }
-  }
+}
 
   function closePopup() {
       const popup = document.getElementById('popup');
