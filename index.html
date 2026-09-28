@@ -1584,7 +1584,7 @@ function updatePopupData(ticket) {
         if (buyBtn) buyBtn.style.display = 'block';
 
     } else {
-        // --- ДЕЙСТВИТЕЛЬНЫЙ БИЛЕТ ---
+       // --- ДЕЙСТВИТЕЛЬНЫЙ БИЛЕТ ---
         const currentDayStr = String(now.getDate()).padStart(2, '0');
         const currentMonthStr = String(now.getMonth() + 1).padStart(2, '0');
         const hours = String(now.getHours()).padStart(2, '0');
@@ -1594,13 +1594,18 @@ function updatePopupData(ticket) {
         if (dynamicContent) {
             let timeElem = document.getElementById('time');
             
-            if (!timeElem) {
+            // Если элементов таймера нет ИЛИ если мы открываем карточку заново (проверяем флаг/класс/первый рендер)
+            if (!timeElem || dynamicContent.dataset.renderedTicket !== String(ticket.series)) {
+                // При каждом открытии нового/того же билета выбираем случайную гифку
                 const gifSrc = Math.random() < 0.5 ? './tramvay.gif' : './tramvay2.gif';
 
+                // Запоминаем текущий билет
+                dynamicContent.dataset.renderedTicket = ticket.series;
+
                 dynamicContent.innerHTML = `
-                    <img src="${gifSrc}" 
-                         alt="Трамвай"
-                         style="margin-top: 6px; width: 100%; height: 28px; margin-bottom: 6px; object-fit: cover; object-position: center; display: block; background: transparent;">
+                    <img src="${gifSrc}?t=${Date.now()}" 
+     alt="Трамвай"
+     style="margin-top: 6px; width: 100%; height: auto; max-height: 40px; margin-bottom: 6px; display: block; background: transparent;">
 
                     <div class="line-time">
                       <div class="progress">
@@ -1613,6 +1618,7 @@ function updatePopupData(ticket) {
                     </div>
                 `;
             } else {
+                // Если карточка уже открыта и обновляется только таймер каждые 1 секунду
                 document.getElementById('date').textContent = `${currentDayStr}.${currentMonthStr}`;
                 timeElem.textContent = `${hours}:${minutes}:${seconds}`;
             }
