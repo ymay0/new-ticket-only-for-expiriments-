@@ -1768,6 +1768,7 @@
     }
   }
 
+ // Вспомогательная функция для получения последнего дня месяца в формате YYYY-MM-DD
   function getLastDayOfMonthISO(year, month) {
     // new Date(year, month + 1, 0) возвращает последний день указанного месяца
     const lastDay = new Date(year, month + 1, 0);
@@ -1779,43 +1780,43 @@
     const now = new Date();
     
     if (forceActive) {
-      // Активный проездной (куплен в этом месяце):
-      // Дата начала — любой день текущего месяца (от 1 числа до сегодняшнего дня включительно)
+      // Активный проездной (куплен в текущем месяце)
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth();
       const currentDay = now.getDate();
 
-      // Случайный день покупки от 1 до текущего числа
+      // Случайный день покупки от 1 до текущего дня
       const randomStartDay = Math.floor(Math.random() * currentDay) + 1;
 
       const startDate = new Date(currentYear, currentMonth, randomStartDay);
 
       return {
         start: formatDateToISO(startDate),
-        end: getLastDayOfMonthISO(currentYear, currentMonth) // Всегда последний день текущего месяца
+        end: getLastDayOfMonthISO(currentYear, currentMonth) // Конец текущего месяца
       };
     } else {
-      // Просроченный проездной (1–2 года назад):
-      // Выбираем случайный год (1 или 2 года назад) и случайный месяц
-      const yearsAgo = Math.floor(Math.random() * 2) + 1; // 1 или 2 года
-      const pastYear = now.getFullYear() - yearsAgo;
+      // Просроченный проездной (рандомный год от 2022 до 2025)
+      const minYear = 2022;
+      const maxYear = 2025;
+      const pastYear = Math.floor(Math.random() * (maxYear - minYear + 1)) + minYear;
+      
       const pastMonth = Math.floor(Math.random() * 12); // от 0 (январь) до 11 (декабрь)
 
-      // Последний день того месяца
+      // Последний день выбранного месяца
       const lastDayOfPastMonth = new Date(pastYear, pastMonth + 1, 0).getDate();
 
-      // Случайный день покупки в том месяце
+      // Случайный день покупки в том месяце (от 1 до последнего дня месяца)
       const randomStartDay = Math.floor(Math.random() * lastDayOfPastMonth) + 1;
 
       const startDate = new Date(pastYear, pastMonth, randomStartDay);
 
       return {
         start: formatDateToISO(startDate),
-        end: getLastDayOfMonthISO(pastYear, pastMonth) // Всегда последний день того месяца
+        end: getLastDayOfMonthISO(pastYear, pastMonth) // Конец того месяца
       };
     }
   }
-
+  
   function renderCards(list) {
       const container = document.getElementById('cards');
       if (!container) return;
