@@ -495,7 +495,6 @@
     overflow: hidden;
   }
 
-  /* Обновленная шапка карточки билета с крестиком НАД текстом */
   .ticket-header-bg {
     background: #f4f3f3;
     width: 100%;
@@ -527,7 +526,7 @@
     font-size: 18px;
     font-weight: 400;
     color: #111;
-    margin-left: 0; /* Убираем отступ слева, чтобы текст встал ровно по краю */
+    margin-left: 0;
     text-align: left;
   }
 
@@ -621,34 +620,32 @@
     margin: 0;
   }
 
-/* Дополнительные стили, когда включается желтая плашка (<= 14 дней) */
-.validity-warning-box {
-  background-color: #fef4e8;
-  border-top: 1px solid #fce3ca;
-  border-bottom: 1px solid #fce3ca;
-  margin-left: -16px;
-  margin-right: -16px; 
-  width: calc(100% + 32px) !important;
-  padding: 12px 16px;
-  margin-bottom: 0px;
-}
+  .validity-warning-box {
+    background-color: #fef4e8;
+    border-top: 1px solid #fce3ca;
+    border-bottom: 1px solid #fce3ca;
+    margin-left: -16px;
+    margin-right: -16px; 
+    width: calc(100% + 32px) !important;
+    padding: 12px 16px;
+    margin-bottom: 0px;
+  }
 
-/* Зеленая кнопка "Купити" */
-.buy-btn-popup {
-  display: block;
-  width: 95%;
-  padding: 14px 0px;
-  background-color: #0d8544;
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  text-align: center;
-  box-sizing: border-box;
-  margin-top: 20px;
-}
+  .buy-btn-popup {
+    display: block;
+    width: 95%;
+    padding: 14px 0px;
+    background-color: #0d8544;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    box-sizing: border-box;
+    margin-top: 20px;
+  }
 
   .price {
     text-align: center;
@@ -669,13 +666,12 @@
     color: #171717;
   }
 
-  /* Базовые стили для контейнера "Строк дії" (всегда по центру) */
-#validity-info-container {
-  width: 100%;
-  text-align: center;
-  margin-top: 0px;
-  box-sizing: border-box;
-}
+  #validity-info-container {
+    width: 100%;
+    text-align: center;
+    margin-top: 0px;
+    box-sizing: border-box;
+  }
 
   .days {
     text-align: center;
@@ -761,8 +757,8 @@
   .route-divider {
     height: 1px;
     background-color: #e5e5ea;
-    margin: 6px 40px 6px 0; /* Добавлен отступ 40px справа */
-    width: auto;            /* Автоматическая ширина с учётом отступа */
+    margin: 6px 40px 6px 0;
+    width: auto;
   }
 
   .swap-btn {
@@ -860,7 +856,6 @@
     overflow: hidden;
   }
 
-  /* Серая шапка внутри карточки */
   .calendar-header-bg {
     background: #f4f3f3;
     width: 100%;
@@ -892,7 +887,7 @@
     font-size: 18px;
     font-weight: 400;
     color: #111;
-    margin-left: 36px; /* Отступ слева, чтобы не налегать на крестик */
+    margin-left: 36px;
     text-align: left;
   }
 
@@ -979,7 +974,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     padding: 0 16px;
   }
 
@@ -998,6 +993,32 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+  }
+
+  .btn-dev-tools {
+    width: 100%;
+    background: #f4f3f3;
+    color: #555;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 10px 0;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-dev-tools:active {
+    background: #e8e8e8;
+  }
+
+  /* ==========================================================================
+     8. СТИЛИ ЭКРАНА "ФУНКЦІЇ РОЗРОБНИКА"
+     ========================================================================== */
+  .developer-shell {
+    padding: calc(env(safe-area-inset-top) + 12px) var(--container-pad) 20px var(--container-pad);
+    max-width: var(--max-width);
+    margin: 0 auto;
   }
 </style>
 
@@ -1090,12 +1111,21 @@
     </div>
   </div>
 
+  <!-- ЭКРАН: ФУНКЦІЇ РОЗРОБНИКА -->
+  <div id="screen-developer" class="page">
+    <div class="developer-shell">
+      <div class="common-header header-left-aligned">
+        <div class="back-btn" onclick="goBackFromDeveloper()"><img src="налево.png" alt="Назад"></div>
+        <div class="title header-left-archive">Функції розробника</div>
+      </div>
+    </div>
+  </div>
+
   <!-- МОДАЛЬНОЕ ОКНО КАЛЕНДАРЯ -->
   <div id="calendar-modal" class="calendar-modal" onclick="closeCalendar(event)">
     <div class="calendar-main-full">
       <div class="calendar-card" onclick="event.stopPropagation()">
         
-        <!-- Серый заголовок внутри карточки с крестиком слева -->
         <div class="calendar-header-bg">
           <div class="calendar-close-btn" onclick="closeCalendar()">✕</div>
           <div class="calendar-title-inner">Дата відправлення</div>
@@ -1147,13 +1177,8 @@
         <div class="calendar-footer">
           <div class="selected-date-preview" id="calendar-preview-date">02.09.2026</div>
 
-          <!-- Секретный режим отладки -->
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; margin-bottom: 8px; cursor: pointer;">
-            <input type="checkbox" id="debug-date-toggle" style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer;">
-            Використовувати для проїзного (Debug)
-          </label>
-
           <button class="btn-done" onclick="applyCalendarDate()">Готово</button>
+          <button class="btn-dev-tools" onclick="openDeveloperScreen()">Функції розробника</button>
         </div>
 
       </div>
@@ -1203,7 +1228,6 @@
     <div class="ticket-main-full">
       <div class="ticket-card" onclick="event.stopPropagation()">
         
-        <!-- Шапка: крестик сверху, заголовок снизу -->
         <div class="ticket-header-bg">
           <div class="close-btn" onclick="closePopup()">✕</div>
           <div class="ticket-title-inner">Студентський (тролейбус місячний)</div>
@@ -1223,16 +1247,17 @@
 
         <div class="price">240.0 UAH</div>
         <div id="validity-info-container">
-      <div class="validity-title" style="font-size: 13px; color: #8e8e93; margin-bottom: 2px;">Строк дії</div>
-      <div class="validity-range" id="range" style="font-size: 15px; font-weight: 500; color: #000;"></div>
-      <div class="validity-days-left" id="daysLeft" style="font-size: 13px; color: #8e8e93; margin-top: 4px;"></div>
-    </div>
+          <div class="validity-title" style="font-size: 13px; color: #8e8e93; margin-bottom: 2px;">Строк дії</div>
+          <div class="validity-range" id="range" style="font-size: 15px; font-weight: 500; color: #000;"></div>
+          <div class="validity-days-left" id="daysLeft" style="font-size: 13px; color: #8e8e93; margin-top: 4px;"></div>
+        </div>
       </div>
     </div>
   </div>
 
 <script>
   let selectedDate = new Date();
+  let previousScreenId = 'screen-train';
 
   function openTrainScreen() {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active-screen'));
@@ -1247,6 +1272,24 @@
   function openMainScreen() {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active-screen'));
     document.getElementById('screen-transport').classList.add('active-screen');
+  }
+
+  function openDeveloperScreen() {
+    const activePage = document.querySelector('.page.active-screen');
+    if (activePage) {
+      previousScreenId = activePage.id;
+    }
+    
+    closeCalendar();
+
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active-screen'));
+    document.getElementById('screen-developer').classList.add('active-screen');
+  }
+
+  function goBackFromDeveloper() {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active-screen'));
+    const targetScreen = document.getElementById(previousScreenId) || document.getElementById('screen-train');
+    targetScreen.classList.add('active-screen');
   }
 
   function swapStations() {
@@ -1343,7 +1386,6 @@
     document.getElementById('calendar-preview-date').textContent = `${dayStr}.${monthStr}.${yearStr}`;
   }
 
- // Переменная для хранения эмулируемой даты (null = реальное время)
   let debugSimulatedDate = null;
 
   function applyCalendarDate() {
@@ -1354,24 +1396,13 @@
     const formattedDate = `${dayStr}.${monthStr}.${yearStr}`;
     document.getElementById('train-date').textContent = formattedDate;
 
-    // Проверяем, включен ли режим отладки
-    const isDebugEnabled = document.getElementById('debug-date-toggle').checked;
-    if (isDebugEnabled) {
-        // Создаем копию выбранной даты и сохраняем
-        debugSimulatedDate = new Date(selectedDate);
-    } else {
-        debugSimulatedDate = null;
-    }
-
     closeCalendar();
   }
 
-  // Вспомогательная функция получения "текущего" времени (реального или эмулируемого)
   function getCurrentAppDate() {
       if (debugSimulatedDate) {
           const simulated = new Date(debugSimulatedDate);
           const realNow = new Date();
-          // Сохраняем текущие часы, минуты и секунды для анимации таймера
           simulated.setHours(realNow.getHours(), realNow.getMinutes(), realNow.getSeconds());
           return simulated;
       }
@@ -1386,14 +1417,12 @@
       const year = now.getFullYear();
       const month = now.getMonth();
 
-      // Генерируем случайный день начала от 1 до 14
       const randomStartDay = Math.floor(Math.random() * 14) + 1;
       const formattedStartDay = String(randomStartDay).padStart(2, '0');
       const formattedMonth = String(month + 1).padStart(2, '0');
       
       const startStr = `${year}-${formattedMonth}-${formattedStartDay}`;
 
-      // Конец действия проездного — последний день этого же месяца
       const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
       const endStr = `${year}-${formattedMonth}-${String(totalDaysInMonth).padStart(2, '0')}`;
 
@@ -1554,7 +1583,6 @@ function updatePopupData(ticket) {
     const validityContainer = document.getElementById('validity-info-container');
     let buyBtn = document.getElementById('popup-buy-btn');
 
-    // Если кнопки нет в DOM, создаем её автоматически
     if (!buyBtn) {
         buyBtn = document.createElement('button');
         buyBtn.id = 'popup-buy-btn';
@@ -1567,7 +1595,6 @@ function updatePopupData(ticket) {
     }
 
     if (!isActive) {
-        // --- НЕДЕЙСТВИТЕЛЬНЫЙ БИЛЕТ ---
         if (dynamicContent) {
             dynamicContent.innerHTML = `
                 <div class="invalid-banner">
@@ -1584,7 +1611,6 @@ function updatePopupData(ticket) {
         if (buyBtn) buyBtn.style.display = 'block';
 
     } else {
-       // --- ДЕЙСТВИТЕЛЬНЫЙ БИЛЕТ ---
         const currentDayStr = String(now.getDate()).padStart(2, '0');
         const currentMonthStr = String(now.getMonth() + 1).padStart(2, '0');
         const hours = String(now.getHours()).padStart(2, '0');
@@ -1594,12 +1620,9 @@ function updatePopupData(ticket) {
         if (dynamicContent) {
             let timeElem = document.getElementById('time');
             
-            // Если элементов таймера нет ИЛИ если мы открываем карточку заново (проверяем флаг/класс/первый рендер)
             if (!timeElem || dynamicContent.dataset.renderedTicket !== String(ticket.series)) {
-                // При каждом открытии нового/того же билета выбираем случайную гифку
                 const gifSrc = Math.random() < 0.5 ? './tramvay.gif' : './tramvay2.gif';
 
-                // Запоминаем текущий билет
                 dynamicContent.dataset.renderedTicket = ticket.series;
 
                 dynamicContent.innerHTML = `
@@ -1618,20 +1641,20 @@ function updatePopupData(ticket) {
                     </div>
                 `;
             } else {
-                // Если карточка уже открыта и обновляется только таймер каждые 1 секунду
                 document.getElementById('date').textContent = `${currentDayStr}.${currentMonthStr}`;
                 timeElem.textContent = `${hours}:${minutes}:${seconds}`;
             }
         }
 
-        // Вычисляем процент выполнения срока
         const totalDurationMs = ticketEnd - ticketStart;
         const elapsedMs = now - ticketStart;
         const progressPercent = Math.min(100, Math.max(0, (elapsedMs / totalDurationMs) * 100));
 
-        // Вычисляем оставшиеся дни
+        // Подсчёт оставшихся календарных дней
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const endDateOnly = new Date(eYear, eMonth - 1, eDay);
         const msPerDay = 1000 * 60 * 60 * 24;
-        const daysLeft = Math.max(0, Math.ceil((ticketEnd - now) / msPerDay));
+        const daysLeft = Math.max(0, Math.round((endDateOnly - todayStart) / msPerDay));
 
         const daysLeftElem = document.getElementById('daysLeft');
         if (daysLeftElem) {
@@ -1639,7 +1662,6 @@ function updatePopupData(ticket) {
             daysLeftElem.textContent = `До закінчення строку дії залишилося «${daysLeft}» днів`;
         }
 
-        // Управление цветом полоски прогресса
         const progressElem = document.getElementById('progress');
         if (progressElem) {
             progressElem.style.width = `${progressPercent}%`;
@@ -1652,13 +1674,10 @@ function updatePopupData(ticket) {
             }
         }
 
-        // УСЛОВИЕ: Осталось 14 или менее дней
         if (daysLeft <= 14) {
-            // Добавляем класс жёлтой плашки
             if (validityContainer) validityContainer.classList.add('validity-warning-box');
             if (buyBtn) buyBtn.style.display = 'block';
         } else {
-            // Убираем только класс плашки (центрирование из #validity-info-container остается)
             if (validityContainer) validityContainer.classList.remove('validity-warning-box');
             if (buyBtn) buyBtn.style.display = 'none';
         }
