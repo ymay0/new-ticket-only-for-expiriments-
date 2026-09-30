@@ -1013,16 +1013,126 @@
   }
 
   /* ==========================================================================
-     8. СТИЛИ ЭКРАНА "ФУНКЦІЇ РОЗРОБНИКА"
+     8. СТИЛИ ЭКРАНА "ФУНКЦІЇ РОЗРОБНИКА" И TOAST УВЕДОМЛЕНИЯ
      ========================================================================== */
   .developer-shell {
     padding: calc(env(safe-area-inset-top) + 12px) var(--container-pad) 20px var(--container-pad);
     max-width: var(--max-width);
     margin: 0 auto;
   }
+
+  .dev-menu-container {
+    padding: 16px 0;
+    font-family: sans-serif;
+  }
+
+  .menu-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .menu-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+  }
+
+  .menu-group input, 
+  .menu-group select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .input-with-btn {
+    display: flex;
+    gap: 8px;
+  }
+
+  .input-with-btn input {
+    flex: 1;
+  }
+
+  .input-with-btn button {
+    padding: 0 12px;
+    border: 1px solid #ccc;
+    background: #f0f0f0;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .switcher-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .switcher-group button {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .switcher-group button.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
+
+  .save-btn {
+    width: 100%;
+    padding: 12px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  .save-btn:active {
+    opacity: 0.9;
+  }
+
+  /* Всплывающее Toast-уведомление */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(30, 30, 30, 0.9);
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 3000;
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
 </style>
 
 <body>
+
+  <!-- Всплывающее уведомление -->
+  <div id="toast" class="toast">Зміни успішно застосовано</div>
 
   <!-- ЭКРАН 1: ТРАНСПОРТ -->
   <div id="screen-transport" class="page active-screen">
@@ -1117,6 +1227,45 @@
       <div class="common-header header-left-aligned">
         <div class="back-btn" onclick="goBackFromDeveloper()"><img src="налево.png" alt="Назад"></div>
         <div class="title header-left-archive">Функції розробника</div>
+      </div>
+
+      <div class="dev-menu-container">
+        <div class="menu-group">
+          <label for="ticket-select">Оберіть квиток / картку:</label>
+          <select id="ticket-select" onchange="loadTicketData()">
+            <!-- Динамически заполняется карточками -->
+          </select>
+        </div>
+
+        <hr />
+
+        <div class="menu-group">
+          <label for="purchase-date">Дата початку дії (YYYY-MM-DD):</label>
+          <input type="date" id="purchase-date" />
+        </div>
+
+        <div class="menu-group">
+          <label for="current-date">Сьогоднішня дата (Симуляція):</label>
+          <input type="date" id="current-date" />
+        </div>
+
+        <div class="menu-group">
+          <label for="ticket-series">Серія:</label>
+          <div class="input-with-btn">
+            <input type="text" id="ticket-series" maxlength="8" placeholder="12345678" />
+            <button type="button" onclick="generateRandomSeries()">🎲</button>
+          </div>
+        </div>
+
+        <div class="menu-group">
+          <label>Анімація (.gif):</label>
+          <div class="switcher-group">
+            <button type="button" id="gif-btn-1" onclick="setGifOption(1)" class="active">GIF 1 (tramvay.gif)</button>
+            <button type="button" id="gif-btn-2" onclick="setGifOption(2)">GIF 2 (tramvay2.gif)</button>
+          </div>
+        </div>
+
+        <button class="save-btn" onclick="saveTicketData()">Зберегти зміни</button>
       </div>
     </div>
   </div>
@@ -1256,6 +1405,159 @@
   </div>
 
 <script>
+  // Генератор рандомной серии (8 цифр)
+  function getRandomSeries() {
+    return Math.floor(10000000 + Math.random() * 90000000).toString();
+  }
+
+  // Генератор исходного рандомного массива карточек при каждой загрузке страницы
+  function generateInitialCards() {
+    const dates1 = getRandomDates(true);  // Активный
+    const dates2 = getRandomDates(false); // Просроченный
+    const dates3 = getRandomDates(false); // Просроченный
+
+    return [
+      {
+        id: "card_1",
+        city: "Одеса",
+        company: "Одесміськелектротранс",
+        start: dates1.start,
+        end: dates1.end,
+        logo: "./Odesa.svg",
+        icon: "metr-td.png",
+        series: getRandomSeries(),
+        gifOption: 1,
+        simulatedCurrentDate: ""
+      },
+      {
+        id: "card_2",
+        city: "Одеса",
+        company: "Одесміськелектротранс",
+        start: dates2.start,
+        end: dates2.end,
+        logo: "./Odesa.svg",
+        icon: "metr-td.png",
+        series: getRandomSeries(),
+        gifOption: 2,
+        simulatedCurrentDate: ""
+      },
+      {
+        id: "card_3",
+        city: "Дніпро",
+        company: "КП Дніпровський електротранспорт ДМР",
+        start: dates3.start,
+        end: dates3.end,
+        logo: "./Dnipro.svg",
+        icon: "metr-td.png",
+        series: getRandomSeries(),
+        gifOption: 1,
+        simulatedCurrentDate: ""
+      }
+    ];
+  }
+
+  // Массив карточек загружается со случайными значениями при каждом открытии
+  let cardsData = generateInitialCards();
+
+  let currentGifOption = 1;
+  let activePopupTicketId = null;
+
+  // Показ компактного всплывающего уведомления
+  function showToast(message = "Зміни успішно застосовано") {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.classList.add('show');
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2500);
+  }
+
+  // Инициализация вариантов карточек в меню разработчика
+  function initDeveloperSelect() {
+    const select = document.getElementById('ticket-select');
+    if (!select) return;
+
+    select.innerHTML = '';
+    cardsData.forEach(card => {
+      const opt = document.createElement('option');
+      opt.value = card.id;
+      opt.textContent = `${card.city} (${card.company.split(' ')[0]}) - №${card.series}`;
+      select.appendChild(opt);
+    });
+  }
+
+  // Загрузка данных выбранного билета в форму разработчика
+  function loadTicketData() {
+    const select = document.getElementById('ticket-select');
+    if (!select) return;
+
+    const cardId = select.value;
+    const card = cardsData.find(c => c.id === cardId);
+
+    if (card) {
+      document.getElementById('purchase-date').value = card.start || '';
+      document.getElementById('current-date').value = card.simulatedCurrentDate || '';
+      document.getElementById('ticket-series').value = card.series || '';
+      setGifOption(card.gifOption || 1);
+    }
+  }
+
+  // Генерация случайной серии в инпуте
+  function generateRandomSeries() {
+    document.getElementById('ticket-series').value = getRandomSeries();
+  }
+
+  // Переключение кнопки GIF (1 или 2)
+  function setGifOption(option) {
+    currentGifOption = option;
+    const btn1 = document.getElementById('gif-btn-1');
+    const btn2 = document.getElementById('gif-btn-2');
+
+    if (btn1 && btn2) {
+      btn1.classList.toggle('active', option === 1);
+      btn2.classList.toggle('active', option === 2);
+    }
+  }
+
+  // Сохранение изменений конкретной карточки (в памяти текущей сессии)
+  function saveTicketData() {
+    const select = document.getElementById('ticket-select');
+    if (!select) return;
+
+    const cardId = select.value;
+    const card = cardsData.find(c => c.id === cardId);
+
+    if (card) {
+      const seriesInput = document.getElementById('ticket-series').value.trim();
+      const purchaseDateInput = document.getElementById('purchase-date').value;
+      const currentDateInput = document.getElementById('current-date').value;
+
+      if (seriesInput) {
+        card.series = seriesInput;
+      }
+
+      if (purchaseDateInput) {
+        card.start = purchaseDateInput;
+      }
+
+      card.simulatedCurrentDate = currentDateInput;
+      card.gifOption = currentGifOption;
+
+      // Перерисовываем список карточек в UI
+      renderCards(cardsData);
+      
+      // Обновляем селект (если изменилась серия)
+      initDeveloperSelect();
+      select.value = cardId;
+
+      // Красивое всплывающее уведомление снизу
+      showToast("Зміни прийнято!");
+    }
+  }
+
   let selectedDate = new Date();
   let previousScreenId = 'screen-train';
 
@@ -1284,6 +1586,9 @@
 
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active-screen'));
     document.getElementById('screen-developer').classList.add('active-screen');
+    
+    initDeveloperSelect();
+    loadTicketData();
   }
 
   function goBackFromDeveloper() {
@@ -1304,10 +1609,10 @@
     const from = document.getElementById('from-station').value;
     const to = document.getElementById('to-station').value;
     if (!from || !to) {
-      alert('Будь ласка, вкажіть пункти відправлення та прибуття');
+      showToast('Будь ласка, вкажіть пункти відправлення та прибуття');
       return;
     }
-    alert(`Пошук поїздів: ${from} — ${to}`);
+    showToast(`Пошук поїздів: ${from} — ${to}`);
   }
 
   /* ==========================================================================
@@ -1386,8 +1691,6 @@
     document.getElementById('calendar-preview-date').textContent = `${dayStr}.${monthStr}.${yearStr}`;
   }
 
-  let debugSimulatedDate = null;
-
   function applyCalendarDate() {
     const dayStr = String(selectedDate.getDate()).padStart(2, '0');
     const monthStr = String(selectedDate.getMonth() + 1).padStart(2, '0');
@@ -1399,9 +1702,9 @@
     closeCalendar();
   }
 
-  function getCurrentAppDate() {
-      if (debugSimulatedDate) {
-          const simulated = new Date(debugSimulatedDate);
+  function getCurrentAppDate(ticket) {
+      if (ticket && ticket.simulatedCurrentDate) {
+          const simulated = new Date(ticket.simulatedCurrentDate);
           const realNow = new Date();
           simulated.setHours(realNow.getHours(), realNow.getMinutes(), realNow.getSeconds());
           return simulated;
@@ -1412,77 +1715,105 @@
   /* ==========================================================================
      ОСТАЛЬНОЙ ФУНКЦИОНАЛ ПРИЛОЖЕНИЯ
      ========================================================================== */
-  function getDynamicTickets() {
-      const now = getCurrentAppDate();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-
-      const randomStartDay = Math.floor(Math.random() * 14) + 1;
-      const formattedStartDay = String(randomStartDay).padStart(2, '0');
-      const formattedMonth = String(month + 1).padStart(2, '0');
-      
-      const startStr = `${year}-${formattedMonth}-${formattedStartDay}`;
-
-      const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
-      const endStr = `${year}-${formattedMonth}-${String(totalDaysInMonth).padStart(2, '0')}`;
-
-      function getRandomPastDates() {
-          const pastYear = Math.floor(Math.random() * (year - 2021)) + 2021;
-          const pastMonthNum = Math.floor(Math.random() * 12) + 1;
-          const pastMonthStr = String(pastMonthNum).padStart(2, '0');
-          const daysInPastMonth = new Date(pastYear, pastMonthNum, 0).getDate();
-          
-          const startDay = Math.floor(Math.random() * (daysInPastMonth - 5)) + 1;
-          const endDay = Math.min(startDay + Math.floor(Math.random() * 10) + 1, daysInPastMonth);
-
-          return { 
-            start: `${pastYear}-${pastMonthStr}-${String(startDay).padStart(2, '0')}`, 
-            end: `${pastYear}-${pastMonthStr}-${String(endDay).padStart(2, '0')}` 
-          };
-      }
-
-      function generateSeriesNumber() {
-          return Math.floor(10000000 + Math.random() * 90000000);
-      }
-
-      const past1 = getRandomPastDates();
-      const past2 = getRandomPastDates();
-
-      return [
-          {
-              city: "Одеса",
-              company: "Одесміськелектротранс",
-              start: startStr,
-              end: endStr,
-              logo: "./Odesa.svg",
-              icon: "metr-td.png",
-              series: generateSeriesNumber()
-          },
-          {
-              city: "Одеса",
-              company: "Одесміськелектротранс",
-              start: past1.start,
-              end: past1.end,
-              logo: "./Odesa.svg",
-              icon: "metr-td.png",
-              series: generateSeriesNumber()
-          },
-          {
-              city: "Дніпро",
-              company: "КП Дніпровський електротранспорт ДМР",
-              start: past2.start,
-              end: past2.end,
-              logo: "./Dnipro.svg",
-              icon: "metr-td.png",
-              series: generateSeriesNumber()
-          }
-      ];
-  }
-
   function formatDateISO(iso) {
       if (!iso || !iso.includes('-')) return iso;
       const parts = iso.split('-');
       return `${parts[2]}.${parts[1]}.${parts[0]}`;
+  }
+
+
+  function formatDateToISO(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function getRandomDates(forceActive = true) {
+    const now = new Date();
+    
+    if (forceActive) {
+      // Активный проездной: начался от 1 до 15 дней назад, закончится через 5-20 дней
+      const pastDays = Math.floor(Math.random() * 15) + 1;
+      const futureDays = Math.floor(Math.random() * 16) + 5;
+
+      const startDate = new Date(now);
+      startDate.setDate(now.getDate() - pastDays);
+
+      const endDate = new Date(now);
+      endDate.setDate(now.getDate() + futureDays);
+
+      return {
+        start: formatDateToISO(startDate),
+        end: formatDateToISO(endDate)
+      };
+    } else {
+      // Просроченный проездной (1-2 года назад)
+      // Генерируем случайный смещение от 365 до 730 дней в прошлом для окончания проездного
+      const daysAgoEnd = Math.floor(Math.random() * 365) + 365; 
+      
+      // Длительность действия проездного (например, от 10 до 30 дней)
+      const durationDays = Math.floor(Math.random() * 21) + 10;
+
+      const endDate = new Date(now);
+      endDate.setDate(now.getDate() - daysAgoEnd);
+
+      const startDate = new Date(endDate);
+      startDate.setDate(endDate.getDate() - durationDays);
+
+      return {
+        start: formatDateToISO(startDate),
+        end: formatDateToISO(endDate)
+      };
+    }
+  }
+
+  function getLastDayOfMonthISO(year, month) {
+    // new Date(year, month + 1, 0) возвращает последний день указанного месяца
+    const lastDay = new Date(year, month + 1, 0);
+    return formatDateToISO(lastDay);
+  }
+
+  // Генератор случайных дат действия
+  function getRandomDates(forceActive = true) {
+    const now = new Date();
+    
+    if (forceActive) {
+      // Активный проездной (куплен в этом месяце):
+      // Дата начала — любой день текущего месяца (от 1 числа до сегодняшнего дня включительно)
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const currentDay = now.getDate();
+
+      // Случайный день покупки от 1 до текущего числа
+      const randomStartDay = Math.floor(Math.random() * currentDay) + 1;
+
+      const startDate = new Date(currentYear, currentMonth, randomStartDay);
+
+      return {
+        start: formatDateToISO(startDate),
+        end: getLastDayOfMonthISO(currentYear, currentMonth) // Всегда последний день текущего месяца
+      };
+    } else {
+      // Просроченный проездной (1–2 года назад):
+      // Выбираем случайный год (1 или 2 года назад) и случайный месяц
+      const yearsAgo = Math.floor(Math.random() * 2) + 1; // 1 или 2 года
+      const pastYear = now.getFullYear() - yearsAgo;
+      const pastMonth = Math.floor(Math.random() * 12); // от 0 (январь) до 11 (декабрь)
+
+      // Последний день того месяца
+      const lastDayOfPastMonth = new Date(pastYear, pastMonth + 1, 0).getDate();
+
+      // Случайный день покупки в том месяце
+      const randomStartDay = Math.floor(Math.random() * lastDayOfPastMonth) + 1;
+
+      const startDate = new Date(pastYear, pastMonth, randomStartDay);
+
+      return {
+        start: formatDateToISO(startDate),
+        end: getLastDayOfMonthISO(pastYear, pastMonth) // Всегда последний день того месяца
+      };
+    }
   }
 
   function renderCards(list) {
@@ -1490,13 +1821,13 @@
       if (!container) return;
       
       container.innerHTML = '';
-      const now = new Date();
 
       const checkmarkSvg = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="margin-left: 4px; display: inline-block; vertical-align: middle;">
           <path d="M13.5 4.5L6.5 11.5L3 8" stroke="#489520" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`;
 
       list.forEach(item => {
+          const now = getCurrentAppDate(item);
           const start = new Date(item.start);
           const end   = new Date(item.end);
 
@@ -1544,6 +1875,8 @@
       const popup = document.getElementById('popup');
       if (!popup) return;
 
+      activePopupTicketId = ticket.id;
+
       document.getElementById('series').textContent = ticket.series;
       document.getElementById('popup-city').textContent = ticket.city;
       document.getElementById('popup-logo').src = ticket.logo;
@@ -1558,137 +1891,141 @@
 
       updatePopupData(ticket);
       if (popupTimerInterval) clearInterval(popupTimerInterval);
-      popupTimerInterval = setInterval(() => updatePopupData(ticket), 1000);
+      popupTimerInterval = setInterval(() => {
+        const currentTicket = cardsData.find(c => c.id === activePopupTicketId);
+        if (currentTicket) updatePopupData(currentTicket);
+      }, 1000);
   }
 
-function updatePopupData(ticket) {
-    const now = getCurrentAppDate();
+  function updatePopupData(ticket) {
+      const now = getCurrentAppDate(ticket);
 
-    const [sYear, sMonth, sDay] = ticket.start.split('-').map(Number);
-    const [eYear, eMonth, eDay] = ticket.end.split('-').map(Number);
+      const [sYear, sMonth, sDay] = ticket.start.split('-').map(Number);
+      const [eYear, eMonth, eDay] = ticket.end.split('-').map(Number);
 
-    const ticketStart = new Date(sYear, sMonth - 1, sDay, 0, 0, 0, 0);
-    const ticketEnd = new Date(eYear, eMonth - 1, eDay, 23, 59, 59, 999);
+      const ticketStart = new Date(sYear, sMonth - 1, sDay, 0, 0, 0, 0);
+      const ticketEnd = new Date(eYear, eMonth - 1, eDay, 23, 59, 59, 999);
 
-    const isActive = now >= ticketStart && now <= ticketEnd;
-    const dynamicContent = document.getElementById('dynamic-ticket-content');
+      const isActive = now >= ticketStart && now <= ticketEnd;
+      const dynamicContent = document.getElementById('dynamic-ticket-content');
 
-    const startDayStr = String(sDay).padStart(2, '0');
-    const startMonthStr = String(sMonth).padStart(2, '0');
-    const endDayStr = String(eDay).padStart(2, '0');
-    const endMonthStr = String(eMonth).padStart(2, '0');
+      const startDayStr = String(sDay).padStart(2, '0');
+      const startMonthStr = String(sMonth).padStart(2, '0');
+      const endDayStr = String(eDay).padStart(2, '0');
+      const endMonthStr = String(eMonth).padStart(2, '0');
 
-    document.getElementById('range').textContent = `${startDayStr}.${startMonthStr}.${sYear} - ${endDayStr}.${endMonthStr}.${eYear}`;
+      document.getElementById('range').textContent = `${startDayStr}.${startMonthStr}.${sYear} - ${endDayStr}.${endMonthStr}.${eYear}`;
 
-    const validityContainer = document.getElementById('validity-info-container');
-    let buyBtn = document.getElementById('popup-buy-btn');
+      const validityContainer = document.getElementById('validity-info-container');
+      let buyBtn = document.getElementById('popup-buy-btn');
 
-    if (!buyBtn) {
-        buyBtn = document.createElement('button');
-        buyBtn.id = 'popup-buy-btn';
-        buyBtn.className = 'buy-btn-popup';
-        buyBtn.textContent = 'Купити';
-        buyBtn.onclick = () => alert('Перехід до купівлі квитка');
-        
-        const cardElem = document.querySelector('.ticket-card');
-        if (cardElem) cardElem.appendChild(buyBtn);
-    }
+      if (!buyBtn) {
+          buyBtn = document.createElement('button');
+          buyBtn.id = 'popup-buy-btn';
+          buyBtn.className = 'buy-btn-popup';
+          buyBtn.textContent = 'Купити';
+          buyBtn.onclick = () => showToast('Перехід до купівлі квитка');
+          
+          const cardElem = document.querySelector('.ticket-card');
+          if (cardElem) cardElem.appendChild(buyBtn);
+      }
 
-    if (!isActive) {
-        if (dynamicContent) {
-            dynamicContent.innerHTML = `
-                <div class="invalid-banner">
-                    <div class="status-invalid">Недійсний</div>
-                    <div class="sub-invalid">Закінчився термін дії</div>
-                </div>
-            `;
-        }
+      if (!isActive) {
+          if (dynamicContent) {
+              dynamicContent.innerHTML = `
+                  <div class="invalid-banner">
+                      <div class="status-invalid">Недійсний</div>
+                      <div class="sub-invalid">Закінчився термін дії</div>
+                  </div>
+              `;
+          }
 
-        const daysLeftElem = document.getElementById('daysLeft');
-        if (daysLeftElem) daysLeftElem.style.display = 'none';
+          const daysLeftElem = document.getElementById('daysLeft');
+          if (daysLeftElem) daysLeftElem.style.display = 'none';
 
-        if (validityContainer) validityContainer.classList.remove('validity-warning-box');
-        if (buyBtn) buyBtn.style.display = 'block';
+          if (validityContainer) validityContainer.classList.remove('validity-warning-box');
+          if (buyBtn) buyBtn.style.display = 'block';
 
-    } else {
-        const currentDayStr = String(now.getDate()).padStart(2, '0');
-        const currentMonthStr = String(now.getMonth() + 1).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
+      } else {
+          const currentDayStr = String(now.getDate()).padStart(2, '0');
+          const currentMonthStr = String(now.getMonth() + 1).padStart(2, '0');
+          const hours = String(now.getHours()).padStart(2, '0');
+          const minutes = String(now.getMinutes()).padStart(2, '0');
+          const seconds = String(now.getSeconds()).padStart(2, '0');
 
-        if (dynamicContent) {
-            let timeElem = document.getElementById('time');
-            
-            if (!timeElem || dynamicContent.dataset.renderedTicket !== String(ticket.series)) {
-                const gifSrc = Math.random() < 0.5 ? './tramvay.gif' : './tramvay2.gif';
+          if (dynamicContent) {
+              let timeElem = document.getElementById('time');
+              
+              if (!timeElem || dynamicContent.dataset.renderedTicket !== String(ticket.series) || dynamicContent.dataset.renderedGif !== String(ticket.gifOption)) {
+                  const gifSrc = ticket.gifOption === 2 ? './tramvay2.gif' : './tramvay.gif';
 
-                dynamicContent.dataset.renderedTicket = ticket.series;
+                  dynamicContent.dataset.renderedTicket = ticket.series;
+                  dynamicContent.dataset.renderedGif = ticket.gifOption;
 
-                dynamicContent.innerHTML = `
-                    <img src="${gifSrc}?t=${Date.now()}" 
-     alt="Трамвай"
-     style="margin-top: 6px; width: 100%; height: auto; max-height: 40px; margin-bottom: 6px; display: block; background: transparent;">
+                  dynamicContent.innerHTML = `
+                      <img src="${gifSrc}?t=${Date.now()}" 
+       alt="Трамвай"
+       style="margin-top: 6px; width: 100%; height: auto; max-height: 40px; margin-bottom: 6px; display: block; background: transparent;">
 
-                    <div class="line-time">
-                      <div class="progress">
-                        <div class="progress-bar" id="progress"></div>
+                      <div class="line-time">
+                        <div class="progress">
+                          <div class="progress-bar" id="progress"></div>
+                        </div>
+                        <div class="row">
+                          <div class="date" id="date">${currentDayStr}.${currentMonthStr}</div>
+                          <div class="time" id="time">${hours}:${minutes}:${seconds}</div>
+                        </div>
                       </div>
-                      <div class="row">
-                        <div class="date" id="date">${currentDayStr}.${currentMonthStr}</div>
-                        <div class="time" id="time">${hours}:${minutes}:${seconds}</div>
-                      </div>
-                    </div>
-                `;
-            } else {
-                document.getElementById('date').textContent = `${currentDayStr}.${currentMonthStr}`;
-                timeElem.textContent = `${hours}:${minutes}:${seconds}`;
-            }
-        }
+                  `;
+              } else {
+                  document.getElementById('date').textContent = `${currentDayStr}.${currentMonthStr}`;
+                  timeElem.textContent = `${hours}:${minutes}:${seconds}`;
+              }
+          }
 
-        const totalDurationMs = ticketEnd - ticketStart;
-        const elapsedMs = now - ticketStart;
-        const progressPercent = Math.min(100, Math.max(0, (elapsedMs / totalDurationMs) * 100));
+          const totalDurationMs = ticketEnd - ticketStart;
+          const elapsedMs = now - ticketStart;
+          const progressPercent = Math.min(100, Math.max(0, (elapsedMs / totalDurationMs) * 100));
 
-        // Подсчёт оставшихся календарных дней
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const endDateOnly = new Date(eYear, eMonth - 1, eDay);
-        const msPerDay = 1000 * 60 * 60 * 24;
-        const daysLeft = Math.max(0, Math.round((endDateOnly - todayStart) / msPerDay));
+          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const endDateOnly = new Date(eYear, eMonth - 1, eDay);
+          const msPerDay = 1000 * 60 * 60 * 24;
+          const daysLeft = Math.max(0, Math.round((endDateOnly - todayStart) / msPerDay));
 
-        const daysLeftElem = document.getElementById('daysLeft');
-        if (daysLeftElem) {
-            daysLeftElem.style.display = 'block';
-            daysLeftElem.textContent = `До закінчення строку дії залишилося «${daysLeft}» днів`;
-        }
+          const daysLeftElem = document.getElementById('daysLeft');
+          if (daysLeftElem) {
+              daysLeftElem.style.display = 'block';
+              daysLeftElem.textContent = `До закінчення строку дії залишилося «${daysLeft}» днів`;
+          }
 
-        const progressElem = document.getElementById('progress');
-        if (progressElem) {
-            progressElem.style.width = `${progressPercent}%`;
-            if (progressPercent >= 80) {
-                progressElem.style.backgroundColor = '#ea4335';
-            } else if (progressPercent >= 50) {
-                progressElem.style.backgroundColor = '#fbbc05';
-            } else {
-                progressElem.style.backgroundColor = '#4da723';
-            }
-        }
+          const progressElem = document.getElementById('progress');
+          if (progressElem) {
+              progressElem.style.width = `${progressPercent}%`;
+              if (progressPercent >= 80) {
+                  progressElem.style.backgroundColor = '#ea4335';
+              } else if (progressPercent >= 50) {
+                  progressElem.style.backgroundColor = '#fbbc05';
+              } else {
+                  progressElem.style.backgroundColor = '#4da723';
+              }
+          }
 
-        if (daysLeft <= 14) {
-            if (validityContainer) validityContainer.classList.add('validity-warning-box');
-            if (buyBtn) buyBtn.style.display = 'block';
-        } else {
-            if (validityContainer) validityContainer.classList.remove('validity-warning-box');
-            if (buyBtn) buyBtn.style.display = 'none';
-        }
-    }
-}
+          if (daysLeft <= 14) {
+              if (validityContainer) validityContainer.classList.add('validity-warning-box');
+              if (buyBtn) buyBtn.style.display = 'block';
+          } else {
+              if (validityContainer) validityContainer.classList.remove('validity-warning-box');
+              if (buyBtn) buyBtn.style.display = 'none';
+          }
+      }
+  }
 
   function closePopup() {
       const popup = document.getElementById('popup');
       if (!popup) return;
 
       if (popupTimerInterval) clearInterval(popupTimerInterval);
+      activePopupTicketId = null;
 
       popup.classList.remove('active');
       setTimeout(() => {
@@ -1696,7 +2033,6 @@ function updatePopupData(ticket) {
       }, 350);
   }
 
-  const tickets = getDynamicTickets();
   let currentTab = 'pass'; 
 
   function switchTab(tab) {
@@ -1736,9 +2072,11 @@ function updatePopupData(ticket) {
 
   document.addEventListener('DOMContentLoaded', () => {
     setInitialTrainDate();
-    renderCards(tickets);
+    renderCards(cardsData);
     switchTab('pass'); 
     initSwipeEvents();
+    initDeveloperSelect();
+    loadTicketData();
   });
 
   function initSwipeEvents() {
@@ -1777,7 +2115,7 @@ function updatePopupData(ticket) {
   }
 
   function scanQR() {
-      alert('Запустити сканер QR');
+      showToast('Запустити сканер QR');
   }
 </script>
 </body>
