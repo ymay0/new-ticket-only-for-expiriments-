@@ -190,13 +190,15 @@ html, body {
 /* ==========================================================================
    4. СТИЛИ ЭКРАНА "АРХИВ"
    ========================================================================== */
+/* 1. Главная оболочка экрана (добавляем внутренние боковые отступы) */
 .shell {
-  padding: calc(env(safe-area-inset-top) + 12px) var(--container-pad) calc(env(safe-area-inset-bottom) + 84px) var(--container-pad); 
-  max-width: var(--max-width); 
+  padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 84px) 16px; 
+  max-width: 600px; 
   margin: 0 auto;
   position: relative;
   background: #fff;
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .tabs {
@@ -243,13 +245,15 @@ html, body {
   box-shadow: none;
 }
 
+/* 2. Область просмотра табов (убираем отрицательные марджины и лишнюю ширину!) */
 .viewport-wrapper {
   overflow: hidden;
-  width: calc(100% + (var(--container-pad) * 2));
-  margin: 10px calc(var(--container-pad) * -1) 0;
+  width: 100%;
+  margin-top: 10px;
   box-sizing: border-box;
 }
 
+/* 3. Контейнер табов */
 .tabs-view-container {
   display: flex;
   width: 200%;
@@ -259,8 +263,16 @@ html, body {
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Прокрутка для списка карточек на вкладке "Проїзний" / "Квиток" */
+/* 4. Страница вкладки (убираем лишние паддинги, так как паддинг уже есть у .shell) */
 .tab-page {
+  width: 50%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0 4px; /* Небольшой зазор для тени карточки */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
   overflow-y: auto;
   max-height: calc(100vh - 180px);
   -webkit-overflow-scrolling: touch;
@@ -307,11 +319,12 @@ html, body {
   max-width: 400px;
 }
 
+/* 5. Список карточек и сама карточка */
 .list { 
-  padding: 10px 0 0; 
+  padding: 10px 0 20px 0; 
   display: flex; 
   flex-direction: column; 
-  gap: 20px; 
+  gap: 16px; 
   width: 100%;
   box-sizing: border-box;
 }
@@ -323,8 +336,8 @@ html, body {
   gap: 16px;
   background: var(--card);
   border-radius: var(--radius);
-  padding: 22px 45px 22px 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  padding: 18px 16px; /* Внутренние отступы самой карточки */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); 
   font-family: 'Inter', sans-serif; 
   cursor: pointer;
   user-select: none;
@@ -638,7 +651,7 @@ html, body {
   text-align: center;
   font-size: 16px;
   font-weight: 600;
-  margin: 0px 0 10px 0;
+  margin: 12px 0 10px 0;
 }
 
 .sub {
