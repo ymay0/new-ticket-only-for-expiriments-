@@ -3,59 +3,11 @@
     return Math.floor(10000000 + Math.random() * 90000000).toString();
   }
 
-  // Вспомогательное форматирование даты в YYYY-MM-DD
-  function formatDateToISO(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  // Получение последнего дня месяца в формате YYYY-MM-DD
-  function getLastDayOfMonthISO(year, month) {
-    const lastDay = new Date(year, month + 1, 0);
-    return formatDateToISO(lastDay);
-  }
-
-  // Генератор случайных дат (активный в текущем месяце, просроченный 2022-2025)
-  function getRandomDates(forceActive = true) {
-    const now = new Date();
-    
-    if (forceActive) {
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth();
-      const currentDay = now.getDate();
-
-      const randomStartDay = Math.floor(Math.random() * currentDay) + 1;
-      const startDate = new Date(currentYear, currentMonth, randomStartDay);
-
-      return {
-        start: formatDateToISO(startDate),
-        end: getLastDayOfMonthISO(currentYear, currentMonth)
-      };
-    } else {
-      const minYear = 2022;
-      const maxYear = 2025;
-      const pastYear = Math.floor(Math.random() * (maxYear - minYear + 1)) + minYear;
-      const pastMonth = Math.floor(Math.random() * 12);
-
-      const lastDayOfPastMonth = new Date(pastYear, pastMonth + 1, 0).getDate();
-      const randomStartDay = Math.floor(Math.random() * lastDayOfPastMonth) + 1;
-
-      const startDate = new Date(pastYear, pastMonth, randomStartDay);
-
-      return {
-        start: formatDateToISO(startDate),
-        end: getLastDayOfMonthISO(pastYear, pastMonth)
-      };
-    }
-  }
-
   // Генерация исходного рандомного массива карточек
   function generateInitialCards() {
-    const dates1 = getRandomDates(true);  
-    const dates2 = getRandomDates(false); 
-    const dates3 = getRandomDates(false); 
+    const dates1 = getRandomDates(true);       // Активный (текущий месяц)
+    const dates2 = getRandomDates(false);      // Просроченный (прошлый месяц)
+    const dniproDates = getDniproSummerDates(); // Летний период для Днепра (2025–2026)
 
     return [
       {
@@ -86,8 +38,8 @@
         id: "card_3",
         city: "Дніпро",
         company: "КП Дніпровський електротранспорт ДМР",
-        start: dates3.start,
-        end: dates3.end,
+        start: dniproDates.start,
+        end: dniproDates.end,
         logo: "./Dnipro.svg",
         icon: "metr-td.png",
         series: getRandomSeries(),
@@ -96,11 +48,14 @@
       }
     ];
   }
-
+  
+  // Массив карточек загружается со случайными значениями при каждом открытии
   let cardsData = generateInitialCards();
+
   let currentGifOption = 1;
   let activePopupTicketId = null;
 
+  // Показ компактного всплывающего уведомления
   function showToast(message = "Зміни успішно застосовано") {
     const toast = document.getElementById('toast');
     if (!toast) return;
@@ -113,6 +68,7 @@
     }, 2500);
   }
 
+  // Инициализация вариантов карточек в меню разработчика
   function initDeveloperSelect() {
     const select = document.getElementById('ticket-select');
     if (!select) return;
@@ -126,6 +82,7 @@
     });
   }
 
+  // Загрузка данных выбранного билета в форму разработчика
   function loadTicketData() {
     const select = document.getElementById('ticket-select');
     if (!select) return;
@@ -141,10 +98,12 @@
     }
   }
 
+  // Генерация случайной серии в инпуте
   function generateRandomSeries() {
     document.getElementById('ticket-series').value = getRandomSeries();
   }
 
+  // Переключение кнопки GIF (1 или 2)
   function setGifOption(option) {
     currentGifOption = option;
     const btn1 = document.getElementById('gif-btn-1');
@@ -156,6 +115,7 @@
     }
   }
 
+  // Сохранение изменений конкретной карточки (в памяти текущей сессии)
   function saveTicketData() {
     const select = document.getElementById('ticket-select');
     if (!select) return;
@@ -168,16 +128,25 @@
       const purchaseDateInput = document.getElementById('purchase-date').value;
       const currentDateInput = document.getElementById('current-date').value;
 
-      if (seriesInput) card.series = seriesInput;
-      if (purchaseDateInput) card.start = purchaseDateInput;
+      if (seriesInput) {
+        card.series = seriesInput;
+      }
+
+      if (purchaseDateInput) {
+        card.start = purchaseDateInput;
+      }
 
       card.simulatedCurrentDate = currentDateInput;
       card.gifOption = currentGifOption;
 
+      // Перерисовываем список карточек в UI
       renderCards(cardsData);
+      
+      // Обновляем селект (если изменилась серия)
       initDeveloperSelect();
       select.value = cardId;
 
+      // Красивое всплывающее уведомление снизу
       showToast("Зміни прийнято!");
     }
   }
@@ -202,7 +171,9 @@
 
   function openDeveloperScreen() {
     const activePage = document.querySelector('.page.active-screen');
-    if (activePage) previousScreenId = activePage.id;
+    if (activePage) {
+      previousScreenId = activePage.id;
+    }
     
     closeCalendar();
 
@@ -237,6 +208,9 @@
     showToast(`Пошук поїздів: ${from} — ${to}`);
   }
 
+  /* ==========================================================================
+     ЛОГИКА КАЛЕНДАРЯ
+     ========================================================================== */
   function openCalendar() {
     const modal = document.getElementById('calendar-modal');
     modal.style.display = 'block';
@@ -292,7 +266,9 @@
       cell.className = 'day-cell';
       cell.textContent = day;
 
-      if (day === selectedDate.getDate()) cell.classList.add('selected');
+      if (day === selectedDate.getDate()) {
+        cell.classList.add('selected');
+      }
 
       cell.onclick = () => {
         selectedDate = new Date(year, month, day);
@@ -313,7 +289,9 @@
     const monthStr = String(selectedDate.getMonth() + 1).padStart(2, '0');
     const yearStr = selectedDate.getFullYear();
 
-    document.getElementById('train-date').textContent = `${dayStr}.${monthStr}.${yearStr}`;
+    const formattedDate = `${dayStr}.${monthStr}.${yearStr}`;
+    document.getElementById('train-date').textContent = formattedDate;
+
     closeCalendar();
   }
 
@@ -327,10 +305,70 @@
       return new Date();
   }
 
+  /* ==========================================================================
+     ОСТАЛЬНОЙ ФУНКЦИОНАЛ ПРИЛОЖЕНИЯ
+     ========================================================================== */
   function formatDateISO(iso) {
       if (!iso || !iso.includes('-')) return iso;
       const parts = iso.split('-');
       return `${parts[2]}.${parts[1]}.${parts[0]}`;
+  }
+
+  function formatDateToISO(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Вспомогательная функция для получения последнего дня месяца в формате YYYY-MM-DD
+  function getLastDayOfMonthISO(year, month) {
+    const lastDay = new Date(year, month + 1, 0);
+    return formatDateToISO(lastDay);
+  }
+
+  // Генератор дат: для активных и по вашей формуле для просроченных (прошлый месяц)
+  function getRandomDates(forceActive = true) {
+    const now = new Date();
+    
+    if (forceActive) {
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const currentDay = now.getDate();
+
+      const randomStartDay = Math.floor(Math.random() * currentDay) + 1;
+      const startDate = new Date(currentYear, currentMonth, randomStartDay);
+
+      return {
+        start: formatDateToISO(startDate),
+        end: getLastDayOfMonthISO(currentYear, currentMonth)
+      };
+    } else {
+      // Формула для просроченной карточки: прошлый месяц относительно текущего
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+
+      // Определяем год и месяц для предыдущего месяца
+      let pastYear = currentYear;
+      let pastMonth = currentMonth - 1;
+      if (pastMonth < 0) {
+        pastMonth = 11;
+        pastYear -= 1;
+      }
+
+      // Получаем последний день прошлого месяца
+      const lastDayOfPastMonth = new Date(pastYear, pastMonth + 1, 0).getDate();
+      // Случайный день начала в прошлом месяце (например, от 1 до 15 числа)
+      const randomStartDay = Math.floor(Math.random() * 15) + 1;
+
+      const startDate = new Date(pastYear, pastMonth, randomStartDay);
+      const endDate = new Date(pastYear, pastMonth, lastDayOfPastMonth);
+
+      return {
+        start: formatDateToISO(startDate),
+        end: formatDateToISO(endDate)
+      };
+    }
   }
 
   function renderCards(list) {
@@ -633,4 +671,29 @@
 
   function scanQR() {
       showToast('Запустити сканер QR');
+  }
+
+  // Генератор специфических дат для летнего периода (июнь-август) с 2025 по текущий год
+  function getDniproSummerDates() {
+    const currentYear = new Date().getFullYear(); // 2026
+    const minYear = 2025;
+    
+    // Случайный год от 2025 до текущего
+    const randomYear = Math.floor(Math.random() * (currentYear - minYear + 1)) + minYear;
+    
+    // Летние месяцы: 5 (июнь), 6 (июль), 7 (август) в объекте Date
+    const summerMonths = [5, 6, 7];
+    const randomMonth = summerMonths[Math.floor(Math.random() * summerMonths.length)];
+    
+    // Случайный день начала до 15 числа (от 1 до 15)
+    const randomStartDay = Math.floor(Math.random() * 15) + 1;
+    
+    const startDate = new Date(randomYear, randomMonth, randomStartDay);
+    // Конец месяца
+    const endDate = new Date(randomYear, randomMonth + 1, 0);
+
+    return {
+      start: formatDateToISO(startDate),
+      end: formatDateToISO(endDate)
+    };
   }
