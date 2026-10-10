@@ -1,21 +1,101 @@
-// Генератор рандомной серии (8 цифр)
+// Логгер для экрана разработчика
+  function logDebug(message) {
+    const logger = document.getElementById('dev-logger');
+    if (!logger) return;
+    const timeStr = new Date().toLocaleTimeString();
+    logger.innerHTML += `[${timeStr}] ${message}<br>`;
+    logger.scrollTop = logger.scrollHeight;
+  }
+
+  // Генератор рандомной серии (8 цифр)
   function getRandomSeries() {
     return Math.floor(10000000 + Math.random() * 90000000).toString();
   }
 
-  // Генерация исходного рандомного массива карточек
+  function formatDateToISO(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function getLastDayOfMonthISO(year, month) {
+    const lastDay = new Date(year, month + 1, 0);
+    return formatDateToISO(lastDay);
+  }
+
+  // 1. Активный билет: покупка в текущем месяце (от 1 до сегодня), окончание — конец текущего месяца
+  function getActiveCardDates() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const currentDay = now.getDate();
+
+    const randomStartDay = Math.floor(Math.random() * currentDay) + 1;
+    const startDate = new Date(currentYear, currentMonth, randomStartDay);
+
+    return {
+      start: formatDateToISO(startDate),
+      end: getLastDayOfMonthISO(currentYear, currentMonth)
+    };
+  }
+
+  // 2. Прошлый просроченный билет: прошлый месяц относительно текущего
+  function getPastMonthCardDates() {
+    const now = new Date();
+    let pastYear = now.getFullYear();
+    let pastMonth = now.getMonth() - 1;
+    if (pastMonth < 0) {
+      pastMonth = 11;
+      pastYear -= 1;
+    }
+
+    const lastDayOfPastMonth = new Date(pastYear, pastMonth + 1, 0).getDate();
+    const randomStartDay = Math.floor(Math.random() * 15) + 1;
+
+    const startDate = new Date(pastYear, pastMonth, randomStartDay);
+    const endDate = new Date(pastYear, pastMonth, lastDayOfPastMonth);
+
+    return {
+      start: formatDateToISO(startDate),
+      end: formatDateToISO(endDate)
+    };
+  }
+
+  // 3. Специфические даты для Днепра: летний месяц (июнь-август), год 2025-2026, день до 15
+  function getDniproSummerDates() {
+    const currentYear = new Date().getFullYear();
+    const randomYear = Math.floor(Math.random() * (currentYear - 2025 + 1)) + 2025;
+    
+    const summerMonths = [5, 6, 7]; // июнь, июль, август
+    const randomMonth = summerMonths[Math.floor(Math.random() * summerMonths.length)];
+    const randomStartDay = Math.floor(Math.random() * 15) + 1;
+    
+    const startDate = new Date(randomYear, randomMonth, randomStartDay);
+    const endDate = new Date(randomYear, randomMonth + 1, 0);
+
+    return {
+      start: formatDateToISO(startDate),
+      end: formatDateToISO(endDate)
+    };
+  }
+
+  // Исходный массив карточек
   function generateInitialCards() {
-    const dates1 = getRandomDates(true);       // Активный (текущий месяц)
-    const dates2 = getRandomDates(false);      // Просроченный (прошлый месяц)
-    const dniproDates = getDniproSummerDates(); // Летний период для Днепра (2025–2026)
+    const activeDates = getActiveCardDates();
+    const pastDates = getPastMonthCardDates();
+    const dniproDates = getDniproSummerDates();
+
+    logDebug("Згенеровано початковий набір карток згідно правил.");
 
     return [
       {
         id: "card_1",
         city: "Одеса",
         company: "Одесміськелектротранс",
-        start: dates1.start,
-        end: dates1.end,
+        price: "240.0 UAH",
+        start: activeDates.start,
+        end: activeDates.end,
         logo: "./Odesa.svg",
         icon: "metr-td.png",
         series: getRandomSeries(),
@@ -26,8 +106,9 @@
         id: "card_2",
         city: "Одеса",
         company: "Одесміськелектротранс",
-        start: dates2.start,
-        end: dates2.end,
+        price: "240.0 UAH",
+        start: pastDates.start,
+        end: pastDates.end,
         logo: "./Odesa.svg",
         icon: "metr-td.png",
         series: getRandomSeries(),
@@ -38,6 +119,7 @@
         id: "card_3",
         city: "Дніпро",
         company: "КП Дніпровський електротранспорт ДМР",
+        price: "270.0 UAH",
         start: dniproDates.start,
         end: dniproDates.end,
         logo: "./Dnipro.svg",
@@ -48,27 +130,51 @@
       }
     ];
   }
-  
-  // Массив карточек загружается со случайными значениями при каждом открытии
-  let cardsData = generateInitialCards();
 
+  let cardsData = generateInitialCards();
   let currentGifOption = 1;
   let activePopupTicketId = null;
 
-  // Показ компактного всплывающего уведомления
   function showToast(message = "Зміни успішно застосовано") {
     const toast = document.getElementById('toast');
     if (!toast) return;
 
     toast.textContent = message;
     toast.classList.add('show');
-
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 2500);
+    setTimeout(() => toast.classList.remove('show'), 2500);
   }
 
-  // Инициализация вариантов карточек в меню разработчика
+  // Сброс к дефолтным настройкам
+  function resetToDefaults() {
+    cardsData = generateInitialCards();
+    renderCards(cardsData);
+    initDeveloperSelect();
+    loadTicketData();
+    logDebug("Скинуто до дефолтних налаштувань.");
+    showToast("Картки скинуто до вихідних!");
+  }
+
+  // Пресеты при смене города в дебаг-меню
+  function updateCityPreset() {
+    const citySelect = document.getElementById('dev-city');
+    const companyInput = document.getElementById('ticket-company');
+    const priceInput = document.getElementById('ticket-price');
+    
+    if (citySelect.value === "Одеса") {
+      companyInput.value = "Одесміськелектротранс";
+      priceInput.value = "240.0 UAH";
+    } else if (citySelect.value === "Дніпро") {
+      companyInput.value = "КП Дніпровський електротранспорт ДМР";
+      priceInput.value = "270.0 UAH";
+    } else if (citySelect.value === "Київ") {
+      companyInput.value = "КП Київпастранс";
+      priceInput.value = "300.0 UAH";
+    } else if (citySelect.value === "Львів") {
+      companyInput.value = "ЛКП Ллектротранс";
+      priceInput.value = "260.0 UAH";
+    }
+  }
+
   function initDeveloperSelect() {
     const select = document.getElementById('ticket-select');
     if (!select) return;
@@ -77,12 +183,11 @@
     cardsData.forEach(card => {
       const opt = document.createElement('option');
       opt.value = card.id;
-      opt.textContent = `${card.city} (${card.company.split(' ')[0]}) - №${card.series}`;
+      opt.textContent = `${card.city} - №${card.series}`;
       select.appendChild(opt);
     });
   }
 
-  // Загрузка данных выбранного билета в форму разработчика
   function loadTicketData() {
     const select = document.getElementById('ticket-select');
     if (!select) return;
@@ -91,6 +196,9 @@
     const card = cardsData.find(c => c.id === cardId);
 
     if (card) {
+      document.getElementById('dev-city').value = card.city || 'Одеса';
+      document.getElementById('ticket-company').value = card.company || '';
+      document.getElementById('ticket-price').value = card.price || '240.0 UAH';
       document.getElementById('purchase-date').value = card.start || '';
       document.getElementById('current-date').value = card.simulatedCurrentDate || '';
       document.getElementById('ticket-series').value = card.series || '';
@@ -98,12 +206,12 @@
     }
   }
 
-  // Генерация случайной серии в инпуте
   function generateRandomSeries() {
-    document.getElementById('ticket-series').value = getRandomSeries();
+    const newSeries = getRandomSeries();
+    document.getElementById('ticket-series').value = newSeries;
+    logDebug(`Згенеровано нову серію: ${newSeries}`);
   }
 
-  // Переключение кнопки GIF (1 или 2)
   function setGifOption(option) {
     currentGifOption = option;
     const btn1 = document.getElementById('gif-btn-1');
@@ -115,7 +223,7 @@
     }
   }
 
-  // Сохранение изменений конкретной карточки (в памяти текущей сессии)
+  // Сохранение изменений в дебаг-меню
   function saveTicketData() {
     const select = document.getElementById('ticket-select');
     if (!select) return;
@@ -124,29 +232,26 @@
     const card = cardsData.find(c => c.id === cardId);
 
     if (card) {
-      const seriesInput = document.getElementById('ticket-series').value.trim();
-      const purchaseDateInput = document.getElementById('purchase-date').value;
-      const currentDateInput = document.getElementById('current-date').value;
-
-      if (seriesInput) {
-        card.series = seriesInput;
-      }
-
-      if (purchaseDateInput) {
-        card.start = purchaseDateInput;
-      }
-
-      card.simulatedCurrentDate = currentDateInput;
+      card.city = document.getElementById('dev-city').value;
+      card.company = document.getElementById('ticket-company').value;
+      card.price = document.getElementById('ticket-price').value;
+      card.series = document.getElementById('ticket-series').value.trim() || card.series;
+      card.start = document.getElementById('purchase-date').value || card.start;
+      card.simulatedCurrentDate = document.getElementById('current-date').value;
       card.gifOption = currentGifOption;
 
-      // Перерисовываем список карточек в UI
+      // Логотип и иконка в зависимости от города
+      if (card.city === "Дніпро") {
+        card.logo = "./Dnipro.svg";
+      } else {
+        card.logo = "./Odesa.svg";
+      }
+
       renderCards(cardsData);
-      
-      // Обновляем селект (если изменилась серия)
       initDeveloperSelect();
       select.value = cardId;
 
-      // Красивое всплывающее уведомление снизу
+      logDebug(`Збережено зміни для картки ID: ${cardId} (${card.city})`);
       showToast("Зміни прийнято!");
     }
   }
@@ -171,9 +276,7 @@
 
   function openDeveloperScreen() {
     const activePage = document.querySelector('.page.active-screen');
-    if (activePage) {
-      previousScreenId = activePage.id;
-    }
+    if (activePage) previousScreenId = activePage.id;
     
     closeCalendar();
 
@@ -182,6 +285,7 @@
     
     initDeveloperSelect();
     loadTicketData();
+    logDebug("Відкрито меню розробника.");
   }
 
   function goBackFromDeveloper() {
@@ -208,9 +312,6 @@
     showToast(`Пошук поїздів: ${from} — ${to}`);
   }
 
-  /* ==========================================================================
-     ЛОГИКА КАЛЕНДАРЯ
-     ========================================================================== */
   function openCalendar() {
     const modal = document.getElementById('calendar-modal');
     modal.style.display = 'block';
@@ -221,9 +322,7 @@
     renderCalendar();
 
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        modal.classList.add('active');
-      });
+      requestAnimationFrame(() => modal.classList.add('active'));
     });
   }
 
@@ -231,9 +330,7 @@
     if (!e || e.target.id === 'calendar-modal' || e.target.classList.contains('calendar-close-btn')) {
       const modal = document.getElementById('calendar-modal');
       modal.classList.remove('active');
-      setTimeout(() => {
-        modal.style.display = 'none';
-      }, 350);
+      setTimeout(() => modal.style.display = 'none', 350);
     }
   }
 
@@ -266,9 +363,7 @@
       cell.className = 'day-cell';
       cell.textContent = day;
 
-      if (day === selectedDate.getDate()) {
-        cell.classList.add('selected');
-      }
+      if (day === selectedDate.getDate()) cell.classList.add('selected');
 
       cell.onclick = () => {
         selectedDate = new Date(year, month, day);
@@ -289,9 +384,7 @@
     const monthStr = String(selectedDate.getMonth() + 1).padStart(2, '0');
     const yearStr = selectedDate.getFullYear();
 
-    const formattedDate = `${dayStr}.${monthStr}.${yearStr}`;
-    document.getElementById('train-date').textContent = formattedDate;
-
+    document.getElementById('train-date').textContent = `${dayStr}.${monthStr}.${yearStr}`;
     closeCalendar();
   }
 
@@ -305,70 +398,10 @@
       return new Date();
   }
 
-  /* ==========================================================================
-     ОСТАЛЬНОЙ ФУНКЦИОНАЛ ПРИЛОЖЕНИЯ
-     ========================================================================== */
   function formatDateISO(iso) {
       if (!iso || !iso.includes('-')) return iso;
       const parts = iso.split('-');
       return `${parts[2]}.${parts[1]}.${parts[0]}`;
-  }
-
-  function formatDateToISO(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  // Вспомогательная функция для получения последнего дня месяца в формате YYYY-MM-DD
-  function getLastDayOfMonthISO(year, month) {
-    const lastDay = new Date(year, month + 1, 0);
-    return formatDateToISO(lastDay);
-  }
-
-  // Генератор дат: для активных и по вашей формуле для просроченных (прошлый месяц)
-  function getRandomDates(forceActive = true) {
-    const now = new Date();
-    
-    if (forceActive) {
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth();
-      const currentDay = now.getDate();
-
-      const randomStartDay = Math.floor(Math.random() * currentDay) + 1;
-      const startDate = new Date(currentYear, currentMonth, randomStartDay);
-
-      return {
-        start: formatDateToISO(startDate),
-        end: getLastDayOfMonthISO(currentYear, currentMonth)
-      };
-    } else {
-      // Формула для просроченной карточки: прошлый месяц относительно текущего
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth();
-
-      // Определяем год и месяц для предыдущего месяца
-      let pastYear = currentYear;
-      let pastMonth = currentMonth - 1;
-      if (pastMonth < 0) {
-        pastMonth = 11;
-        pastYear -= 1;
-      }
-
-      // Получаем последний день прошлого месяца
-      const lastDayOfPastMonth = new Date(pastYear, pastMonth + 1, 0).getDate();
-      // Случайный день начала в прошлом месяце (например, от 1 до 15 числа)
-      const randomStartDay = Math.floor(Math.random() * 15) + 1;
-
-      const startDate = new Date(pastYear, pastMonth, randomStartDay);
-      const endDate = new Date(pastYear, pastMonth, lastDayOfPastMonth);
-
-      return {
-        start: formatDateToISO(startDate),
-        end: formatDateToISO(endDate)
-      };
-    }
   }
 
   function renderCards(list) {
@@ -435,13 +468,12 @@
       document.getElementById('series').textContent = ticket.series;
       document.getElementById('popup-city').textContent = ticket.city;
       document.getElementById('popup-logo').src = ticket.logo;
+      document.getElementById('popup-price').textContent = ticket.price || "240.0 UAH";
 
       popup.style.display = 'block';
 
       requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-              popup.classList.add('active');
-          });
+          requestAnimationFrame(() => popup.classList.add('active'));
       });
 
       updatePopupData(ticket);
@@ -583,9 +615,7 @@
       activePopupTicketId = null;
 
       popup.classList.remove('active');
-      setTimeout(() => {
-          popup.style.display = 'none';
-      }, 350);
+      setTimeout(() => popup.style.display = 'none', 350);
   }
 
   let currentTab = 'pass'; 
@@ -602,19 +632,15 @@
     if (tab === 'ticket') {
       container.style.transform = 'translate3d(0%, 0, 0)';
       glider.style.transform = 'translateX(0%)';
-      
       tabTicket.classList.add('active');
       tabPass.classList.remove('active');
-
       pages[0].classList.add('active-page');
       pages[1].classList.remove('active-page');
     } else {
       container.style.transform = 'translate3d(-50%, 0, 0)';
       glider.style.transform = 'translateX(100%)';
-      
       tabPass.classList.add('active');
       tabTicket.classList.remove('active');
-
       pages[1].classList.add('active-page');
       pages[0].classList.remove('active-page');
     }
@@ -632,6 +658,7 @@
     initSwipeEvents();
     initDeveloperSelect();
     loadTicketData();
+    logDebug("Додаток успішно завантажено в DOM.");
   });
 
   function initSwipeEvents() {
@@ -671,29 +698,4 @@
 
   function scanQR() {
       showToast('Запустити сканер QR');
-  }
-
-  // Генератор специфических дат для летнего периода (июнь-август) с 2025 по текущий год
-  function getDniproSummerDates() {
-    const currentYear = new Date().getFullYear(); // 2026
-    const minYear = 2025;
-    
-    // Случайный год от 2025 до текущего
-    const randomYear = Math.floor(Math.random() * (currentYear - minYear + 1)) + minYear;
-    
-    // Летние месяцы: 5 (июнь), 6 (июль), 7 (август) в объекте Date
-    const summerMonths = [5, 6, 7];
-    const randomMonth = summerMonths[Math.floor(Math.random() * summerMonths.length)];
-    
-    // Случайный день начала до 15 числа (от 1 до 15)
-    const randomStartDay = Math.floor(Math.random() * 15) + 1;
-    
-    const startDate = new Date(randomYear, randomMonth, randomStartDay);
-    // Конец месяца
-    const endDate = new Date(randomYear, randomMonth + 1, 0);
-
-    return {
-      start: formatDateToISO(startDate),
-      end: formatDateToISO(endDate)
-    };
   }

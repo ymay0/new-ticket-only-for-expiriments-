@@ -6,11 +6,10 @@
   <title>Транспорт</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
   <link rel="manifest" href="manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <!-- Подключение стилей -->
-  <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
@@ -104,55 +103,88 @@
     </div>
   </div>
 
-  <!-- ЭКРАН: ФУНКЦІЇ РОЗРОБНИКА -->
+<!-- ЭКРАН: ФУНКЦІЇ РОЗРОБНИКА -->
   <div id="screen-developer" class="page">
     <div class="developer-shell">
-      <div class="common-header header-left-aligned">
+      <!-- Фиксированная шапка -->
+      <div class="common-header header-left-aligned dev-fixed-header">
         <div class="back-btn" onclick="goBackFromDeveloper()"><img src="налево.png" alt="Назад"></div>
         <div class="title header-left-archive">Функції розробника</div>
       </div>
 
-      <div class="dev-menu-container">
-        <div class="menu-group">
-          <label for="ticket-select">Оберіть квиток / картку:</label>
-          <select id="ticket-select" onchange="loadTicketData()">
-            <!-- Динамически заполняется карточками -->
-          </select>
-        </div>
+      <!-- Прокручиваемое содержимое -->
+      <div class="dev-scrollable-content">
+        <div class="dev-menu-container">
+          <div class="menu-group">
+            <label for="ticket-select">Оберіть квиток / картку:</label>
+            <select id="ticket-select" onchange="loadTicketData()">
+              <!-- Динамически заполняется карточками -->
+            </select>
+          </div>
 
-        <hr />
+          <hr />
 
-        <div class="menu-group">
-          <label for="purchase-date">Дата початку дії (YYYY-MM-DD):</label>
-          <input type="date" id="purchase-date" />
-        </div>
+          <div class="menu-group">
+            <label for="dev-city">Місто:</label>
+            <select id="dev-city" onchange="updateCityPreset()">
+              <option value="Одеса">Одеса</option>
+              <option value="Дніпро">Дніпро</option>
+              <option value="Київ">Київ</option>
+              <option value="Львів">Львів</option>
+            </select>
+          </div>
 
-        <div class="menu-group">
-          <label for="current-date">Сьогоднішня дата (Симуляція):</label>
-          <input type="date" id="current-date" />
-        </div>
+          <div class="menu-group">
+            <label for="ticket-company">Компанія-перевізник:</label>
+            <input type="text" id="ticket-company" />
+          </div>
 
-        <div class="menu-group">
-          <label for="ticket-series">Серія:</label>
-          <div class="input-with-btn">
-            <input type="text" id="ticket-series" maxlength="8" placeholder="12345678" />
-            <button type="button" onclick="generateRandomSeries()">🎲</button>
+          <div class="menu-group">
+            <label for="ticket-price">Ціна (UAH):</label>
+            <input type="text" id="ticket-price" />
+          </div>
+
+          <div class="menu-group">
+            <label for="purchase-date">Дата початку дії (YYYY-MM-DD):</label>
+            <input type="date" id="purchase-date" />
+          </div>
+
+          <div class="menu-group">
+            <label for="current-date">Сьогоднішня дата (Симуляція):</label>
+            <input type="date" id="current-date" />
+          </div>
+
+          <div class="menu-group">
+            <label for="ticket-series">Серія:</label>
+            <div class="input-with-btn">
+              <input type="text" id="ticket-series" maxlength="8" placeholder="12345678" />
+              <button type="button" onclick="generateRandomSeries()">🎲</button>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <label>Анімація (.gif):</label>
+            <div class="switcher-group">
+              <button type="button" id="gif-btn-1" onclick="setGifOption(1)" class="active">GIF 1 (tramvay.gif)</button>
+              <button type="button" id="gif-btn-2" onclick="setGifOption(2)">GIF 2 (tramvay2.gif)</button>
+            </div>
+          </div>
+
+          <button class="save-btn" onclick="saveTicketData()">Зберегти зміни</button>
+          <button class="save-btn" style="background: #dc3545; margin-top: 8px;" onclick="resetToDefaults()">Скинути до дефолту</button>
+
+          <!-- Блок логирования действий -->
+          <div class="menu-group" style="margin-top: 20px;">
+            <label>Лог виконання:</label>
+            <div id="dev-logger" style="background: #1e1e1e; color: #00ff00; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 12px; height: 80px; overflow-y: auto;">
+              Система ініціалізована успішно.
+            </div>
           </div>
         </div>
-
-        <div class="menu-group">
-          <label>Анімація (.gif):</label>
-          <div class="switcher-group">
-            <button type="button" id="gif-btn-1" onclick="setGifOption(1)" class="active">GIF 1 (tramvay.gif)</button>
-            <button type="button" id="gif-btn-2" onclick="setGifOption(2)">GIF 2 (tramvay2.gif)</button>
-          </div>
-        </div>
-
-        <button class="save-btn" onclick="saveTicketData()">Зберегти зміни</button>
       </div>
     </div>
   </div>
-
+  
   <!-- МОДАЛЬНОЕ ОКНО КАЛЕНДАРЯ -->
   <div id="calendar-modal" class="calendar-modal" onclick="closeCalendar(event)">
     <div class="calendar-main-full">
@@ -262,7 +294,7 @@
         
         <div class="ticket-header-bg">
           <div class="close-btn" onclick="closePopup()">✕</div>
-          <div class="ticket-title-inner">Студентський (тролейбус місячний)</div>
+          <div class="ticket-title-inner" id="popup-main-title">Студентський (тролейбус місячний)</div>
         </div>
 
         <div class="ticket-logo">
@@ -277,7 +309,7 @@
 
         <div id="dynamic-ticket-content" style="width: 100%;"></div>
 
-        <div class="price">240.0 UAH</div>
+        <div class="price" id="popup-price">240.0 UAH</div>
         <div id="validity-info-container">
           <div class="validity-title" style="font-size: 13px; color: #8e8e93; margin-bottom: 2px;">Строк дії</div>
           <div class="validity-range" id="range" style="font-size: 15px; font-weight: 500; color: #000;"></div>
@@ -287,7 +319,6 @@
     </div>
   </div>
 
-  <!-- Подключение скрипта -->
   <script src="index.js"></script>
 </body>
 </html>

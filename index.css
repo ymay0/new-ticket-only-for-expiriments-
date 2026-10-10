@@ -259,15 +259,16 @@ html, body {
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* Прокрутка для списка карточек на вкладке "Проїзний" / "Квиток" */
 .tab-page {
-  width: 50%;
-  flex-shrink: 0;
-  box-sizing: border-box;
-  padding: 0 var(--container-pad);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
+  overflow-y: auto;
+  max-height: calc(100vh - 180px);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tab-page::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-page.active-page {
@@ -1001,22 +1002,65 @@ html, body {
 /* ==========================================================================
    8. СТИЛИ ЭКРАНА "ФУНКЦІЇ РОЗРОБНИКА" И TOAST УВЕДОМЛЕНИЯ
    ========================================================================== */
+/* Оболочка экрана разработчика */
 .developer-shell {
-  padding: calc(env(safe-area-inset-top) + 12px) var(--container-pad) 20px var(--container-pad);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: calc(env(safe-area-inset-top) + 12px) var(--container-pad) 0 var(--container-pad);
   max-width: var(--max-width);
   margin: 0 auto;
+  overflow: hidden; /* Запрещаем скролл всей страницы целиком */
+}
+
+.developer-shell::-webkit-scrollbar {
+  display: none;
+}
+
+/* Фиксированная шапка, которая стоит на месте */
+.dev-fixed-header {
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
+/* Прокручиваемая область под шапкой */
+.dev-scrollable-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 40px;
+}
+
+.dev-scrollable-content::-webkit-scrollbar {
+  display: none;
 }
 
 .dev-menu-container {
-  padding: 16px 0;
-  font-family: sans-serif;
+  padding: 16px 8px; /* Внутренние отступы от краев экрана */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .menu-group {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.menu-group input, 
+.menu-group select {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  background: #fff;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .menu-group label {
@@ -1061,7 +1105,7 @@ html, body {
   padding: 10px;
   border: 1px solid #ccc;
   background: #f9f9f9;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: bold;
 }
@@ -1074,15 +1118,16 @@ html, body {
 
 .save-btn {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   background: #28a745;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   margin-top: 10px;
+  box-sizing: border-box;
 }
 
 .save-btn:active {
